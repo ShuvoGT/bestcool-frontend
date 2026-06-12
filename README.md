@@ -8,10 +8,10 @@ A production-quality electronics e-commerce web application for the Bangladesh m
 - **Couriers**: Steadfast, Pathao, RedX
 - **Notifications**: Email (Nodemailer/SMTP) + SMS (provider-agnostic gateway)
 
-> **Build status**: Phase 1 (scaffolding, schema, seed), Phase 2 (backend REST API), and
-> Phase 3 (admin panel at `/admin` — dashboard, Pages CMS block editor, products, categories,
-> orders, customers, flash sales, settings) complete.
-> Phases 4–8 (storefront, checkout, payments, couriers, analytics) are in progress.
+> **Build status**: Phases 1–4 complete — scaffolding/schema/seed, backend REST API,
+> admin panel at `/admin`, and the full CMS-driven storefront (all 8 pages, shop,
+> single product page, wishlist, flash-sale countdown, mini-cart, WhatsApp button).
+> Phases 5–8 (checkout/COD/emails/SMS, online payments, couriers, analytics) are in progress.
 
 ---
 

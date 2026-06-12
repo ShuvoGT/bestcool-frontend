@@ -1,0 +1,263 @@
+/**
+ * Renders enriched CMS blocks into storefront sections.
+ * Server component — interactive children (slider, product cards, countdown)
+ * are client components composed inside.
+ */
+import Image from "next/image";
+import Link from "next/link";
+import { Mail, MapPin, Phone, Clock, Zap } from "lucide-react";
+import type { CmsBlock, ProductCardData } from "@/lib/server-api";
+import { HeroSlider, type Slide } from "@/components/store/blocks/HeroSlider";
+import { ProductCard } from "@/components/store/ProductCard";
+import { Countdown } from "@/components/store/Countdown";
+import { RatingStars } from "@/components/store/RatingStars";
+import {
+  Accordion, AccordionContent, AccordionItem, AccordionTrigger,
+} from "@/components/ui/accordion";
+import { cn } from "@/lib/utils";
+
+function SectionHeading({ heading, subheading }: { heading?: string; subheading?: string }) {
+  if (!heading) return null;
+  return (
+    <div className="mb-7 text-center">
+      <h2 className="text-2xl font-extrabold tracking-tight text-zinc-900 sm:text-3xl">{heading}</h2>
+      {subheading && <p className="mt-2 text-sm text-zinc-500">{subheading}</p>}
+    </div>
+  );
+}
+
+const wrap = "mx-auto max-w-7xl px-4 sm:px-6";
+
+export function BlockRenderer({ blocks }: { blocks: CmsBlock[] }) {
+  return (
+    <>
+      {blocks.map((block) => (
+        <Block key={block.id} block={block} />
+      ))}
+    </>
+  );
+}
+
+function Block({ block }: { block: CmsBlock }) {
+  const c = block.content;
+
+  switch (block.type) {
+    case "HERO_SLIDER":
+      return <HeroSlider slides={(c.slides ?? []) as Slide[]} />;
+
+    case "BANNER": {
+      if (!c.image) return null;
+      const img = (
+        <div className="relative w-full overflow-hidden rounded-xl">
+          <Image src={c.image as string} alt={(c.alt as string) ?? ""} width={1600} height={300} unoptimized className="h-auto w-full object-cover" />
+        </div>
+      );
+      return (
+        <section className={cn(wrap, "py-6")}>
+          {c.link ? <Link href={c.link as string}>{img}</Link> : img}
+        </section>
+      );
+    }
+
+    case "RICH_TEXT":
+      return (
+        <section className={cn(wrap, "max-w-3xl py-10")}>
+          <div
+            className="prose-h2 space-y-4 text-[15px] leading-relaxed text-zinc-600 [&_a]:text-blue-600 [&_a]:underline [&_h2]:mt-8 [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:text-zinc-900 [&_h3]:mt-6 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-zinc-900 [&_li]:ml-5 [&_li]:list-disc [&_strong]:text-zinc-900"
+            dangerouslySetInnerHTML={{ __html: (c.html as string) ?? "" }}
+          />
+        </section>
+      );
+
+    case "IMAGE_TEXT":
+      return (
+        <section className={cn(wrap, "py-10")}>
+          <div className={cn("grid items-center gap-8 md:grid-cols-2")}>
+            <div className={cn("relative aspect-[4/3] overflow-hidden rounded-2xl", c.layout === "right" && "md:order-2")}>
+              {c.image && <Image src={c.image as string} alt={(c.heading as string) ?? ""} fill unoptimized className="object-cover" />}
+            </div>
+            <div>
+              {c.heading && <h2 className="mb-4 text-2xl font-extrabold tracking-tight text-zinc-900 sm:text-3xl">{c.heading as string}</h2>}
+              <div
+                className="space-y-3 text-[15px] leading-relaxed text-zinc-600 [&_li]:mb-2 [&_li]:ml-5 [&_li]:list-disc [&_strong]:text-zinc-900"
+                dangerouslySetInnerHTML={{ __html: (c.html as string) ?? "" }}
+              />
+            </div>
+          </div>
+        </section>
+      );
+
+    case "IMAGE_GALLERY": {
+      const images = (c.images ?? []) as { url: string; alt?: string }[];
+      if (!images.length) return null;
+      return (
+        <section className={cn(wrap, "py-10")}>
+          <SectionHeading heading={c.heading as string} />
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
+            {images.map((img, i) => (
+              <div key={i} className="group relative aspect-[4/3] overflow-hidden rounded-xl">
+                <Image src={img.url} alt={img.alt ?? ""} fill unoptimized className="object-cover transition-transform duration-300 group-hover:scale-105" />
+              </div>
+            ))}
+          </div>
+        </section>
+      );
+    }
+
+    case "FEATURED_PRODUCTS": {
+      const products = (block.data?.products ?? []) as ProductCardData[];
+      if (!products.length) return null;
+      return (
+        <section className={cn(wrap, "py-10")}>
+          <SectionHeading heading={c.heading as string} subheading={c.subheading as string} />
+          <div className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 xl:grid-cols-4">
+            {products.map((p) => <ProductCard key={p.id} product={p} />)}
+          </div>
+        </section>
+      );
+    }
+
+    case "FEATURED_CATEGORIES": {
+      const categories = (block.data?.categories ?? []) as { id: string; name: string; slug: string; image: string | null; productCount: number }[];
+      if (!categories.length) return null;
+      return (
+        <section className={cn(wrap, "py-10")}>
+          <SectionHeading heading={c.heading as string} />
+          <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
+            {categories.map((cat) => (
+              <Link
+                key={cat.id}
+                href={`/shop?category=${cat.slug}`}
+                className="group relative aspect-[3/2] overflow-hidden rounded-xl bg-zinc-100"
+              >
+                {cat.image && (
+                  <Image src={cat.image} alt={cat.name} fill unoptimized className="object-cover transition-transform duration-300 group-hover:scale-105" />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                <div className="absolute bottom-3 left-4">
+                  <div className="font-bold text-white">{cat.name}</div>
+                  <div className="text-xs text-zinc-300">{cat.productCount} products</div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      );
+    }
+
+    case "FLASH_SALE": {
+      const sale = block.data?.flashSale as { id: string; title: string; endsAt: string; products: ProductCardData[] } | null;
+      if (!sale || !sale.products.length) return null;
+      return (
+        <section className="bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 py-10">
+          <div className={wrap}>
+            <div className="mb-7 flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
+              <div>
+                <h2 className="flex items-center gap-2 text-2xl font-extrabold tracking-tight text-zinc-900 sm:text-3xl">
+                  <Zap className="h-7 w-7 fill-amber-400 text-amber-500" />
+                  {(c.heading as string) || sale.title}
+                </h2>
+                {c.subheading && <p className="mt-1 text-sm text-zinc-500">{c.subheading as string}</p>}
+              </div>
+              <Countdown endsAt={sale.endsAt} />
+            </div>
+            <div className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 xl:grid-cols-4">
+              {sale.products.map((p) => <ProductCard key={p.id} product={p} />)}
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    case "TESTIMONIALS": {
+      const items = (c.items ?? []) as { name: string; location?: string; rating?: number; text: string }[];
+      if (!items.length) return null;
+      return (
+        <section className="bg-zinc-50 py-12">
+          <div className={wrap}>
+            <SectionHeading heading={c.heading as string} />
+            <div className="grid gap-5 md:grid-cols-3">
+              {items.map((t, i) => (
+                <figure key={i} className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
+                  <RatingStars rating={t.rating ?? 5} size="sm" />
+                  <blockquote className="mt-3 text-sm leading-relaxed text-zinc-600">“{t.text}”</blockquote>
+                  <figcaption className="mt-4 text-sm font-semibold text-zinc-900">
+                    {t.name}
+                    {t.location && <span className="ml-1.5 font-normal text-zinc-400">· {t.location}</span>}
+                  </figcaption>
+                </figure>
+              ))}
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    case "FAQ": {
+      const items = (c.items ?? []) as { question: string; answer: string }[];
+      if (!items.length) return null;
+      return (
+        <section className={cn(wrap, "max-w-3xl py-10")}>
+          <SectionHeading heading={c.heading as string} />
+          <Accordion type="single" collapsible className="w-full">
+            {items.map((item, i) => (
+              <AccordionItem key={i} value={`faq-${i}`}>
+                <AccordionTrigger className="text-left font-semibold text-zinc-900">{item.question}</AccordionTrigger>
+                <AccordionContent className="text-zinc-600">{item.answer}</AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </section>
+      );
+    }
+
+    case "CONTACT_INFO":
+      return (
+        <section className={cn(wrap, "py-10")}>
+          <SectionHeading heading={c.heading as string} />
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              { icon: Phone, label: "Phone", value: c.phone as string, href: `tel:${c.phone}` },
+              { icon: Mail, label: "Email", value: c.email as string, href: `mailto:${c.email}` },
+              { icon: MapPin, label: "Address", value: c.address as string },
+              { icon: Clock, label: "Hours", value: c.hours as string },
+            ]
+              .filter((x) => x.value)
+              .map(({ icon: Icon, label, value, href }) => (
+                <div key={label} className="rounded-xl border border-zinc-200 bg-white p-5 text-center shadow-sm">
+                  <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <div className="text-xs font-semibold uppercase tracking-wider text-zinc-400">{label}</div>
+                  {href ? (
+                    <a href={href} className="mt-1 block text-sm font-medium text-zinc-900 hover:text-blue-600">{value}</a>
+                  ) : (
+                    <div className="mt-1 text-sm font-medium text-zinc-900">{value}</div>
+                  )}
+                </div>
+              ))}
+          </div>
+        </section>
+      );
+
+    case "MAP_EMBED":
+      if (!c.embedUrl) return null;
+      return (
+        <section className={cn(wrap, "py-10")}>
+          <SectionHeading heading={c.heading as string} />
+          <div className="overflow-hidden rounded-xl border border-zinc-200">
+            <iframe
+              src={c.embedUrl as string}
+              className="h-96 w-full"
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              title={(c.heading as string) || "Map"}
+            />
+          </div>
+        </section>
+      );
+
+    default:
+      return null;
+  }
+}
