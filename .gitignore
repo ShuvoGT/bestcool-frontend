@@ -1,0 +1,10 @@
+# Portable dev tools (Node.js + PostgreSQL binaries and data) — machine-local
+tools/node/
+tools/pgsql/
+tools/pgdata/
+tools/pg.log
+
+node_modules/
+.env
+.env.local
+.claude/settings.local.json
