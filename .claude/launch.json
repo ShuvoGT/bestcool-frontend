@@ -1,0 +1,14 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "frontend",
+      "runtimeExecutable": "cmd.exe",
+      "runtimeArgs": [
+        "/c",
+        "set PATH=D:\\ShuvoGT\\Development\\Claude Code\\Ecommerce Project\\tools\\node;%PATH% && cd frontend && npm run dev"
+      ],
+      "port": 3000
+    }
+  ]
+}
