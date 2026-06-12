@@ -4,7 +4,6 @@ import { Prisma, type DeliveryStatus, type PaymentMethod } from "@prisma/client"
 import { prisma } from "../lib/prisma";
 import { badRequest, notFound } from "../lib/errors";
 import { getRunningFlashMap, resolvePrice, unitPrice } from "./pricing";
-import { env } from "../config/env";
 
 export type CreateOrderInput = {
   customer: { name: string; email: string; phone: string };
@@ -152,10 +151,6 @@ export async function createOrder(input: CreateOrderInput, authedUserId?: string
     return { orderId: order.id, orderNumber, ...userInfo };
   });
 
-  // Phase 5 wires this into the credentials email. Console-only in dev.
-  if (result.accountCreated && !env.isProd) {
-    console.log(`[dev] Auto-created account for ${input.customer.email} with temp password: ${result.tempPassword}`);
-  }
   return result;
 }
 

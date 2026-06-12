@@ -7,6 +7,7 @@ import { validate } from "../middleware/validate";
 import { requireAuth } from "../middleware/auth";
 import { checkoutLimiter } from "../middleware/rateLimit";
 import { createOrder } from "../services/orders";
+import { notifyOrderPlaced } from "../services/notifications";
 import { serializeOrder } from "../services/serializers";
 import { sanitizePlainText } from "../utils/sanitize";
 
@@ -45,7 +46,10 @@ ordersRouter.post(
     // Clear the (DB) cart for logged-in users after a successful order.
     if (req.user) await prisma.cartItem.deleteMany({ where: { userId: req.user.id } });
 
-    // Phase 5 adds: confirmation email/SMS + credentials email for new accounts.
+    // Confirmation email + SMS (+ credentials email for auto-created
+    // accounts). Fire-and-forget: never delays or breaks order placement.
+    void notifyOrderPlaced(result.orderId, result.tempPassword);
+
     res.status(201).json({
       orderNumber: result.orderNumber,
       accountCreated: result.accountCreated,

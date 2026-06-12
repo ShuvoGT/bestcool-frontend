@@ -8,10 +8,19 @@ A production-quality electronics e-commerce web application for the Bangladesh m
 - **Couriers**: Steadfast, Pathao, RedX
 - **Notifications**: Email (Nodemailer/SMTP) + SMS (provider-agnostic gateway)
 
-> **Build status**: Phases 1–4 complete — scaffolding/schema/seed, backend REST API,
-> admin panel at `/admin`, and the full CMS-driven storefront (all 8 pages, shop,
-> single product page, wishlist, flash-sale countdown, mini-cart, WhatsApp button).
-> Phases 5–8 (checkout/COD/emails/SMS, online payments, couriers, analytics) are in progress.
+> **Build status**: Phases 1–5 complete — scaffolding/schema/seed, backend REST API,
+> admin panel at `/admin`, the full CMS-driven storefront, and the complete commerce
+> flow: cart, single-page checkout, COD orders, guest→auto-account creation with
+> credentials email + forced first-login password change, customer dashboard
+> (orders/timeline/addresses/profile), transactional emails, and SMS notifications.
+> Phases 6–8 (bKash/Nagad/SSLCommerz, couriers, analytics) are in progress.
+
+**Email & SMS in development**: with no SMTP/SMS credentials in `backend/.env`, every
+email and SMS is printed to the backend console instead of being sent — so you can
+test the entire flow (including the auto-account temp password) with zero setup.
+Fill `SMTP_*` to send real email; fill `SMS_API_BASE_URL`, `SMS_API_KEY`,
+`SMS_SENDER_ID` for a real BD SMS gateway (generic HTTP provider, swappable in
+`backend/src/lib/sms.ts`). Per-event SMS toggles live in Admin → Settings → SMS.
 
 ---
 

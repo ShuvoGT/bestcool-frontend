@@ -1,4 +1,5 @@
 import { getSettings } from "@/lib/server-api";
+import { AuthProvider } from "@/lib/auth";
 import { StoreProvider } from "@/lib/store";
 import { Header } from "@/components/store/Header";
 import { Footer } from "@/components/store/Footer";
@@ -9,6 +10,7 @@ export default async function StoreLayout({ children }: { children: React.ReactN
   const settings = await getSettings();
 
   return (
+    <AuthProvider>
     <StoreProvider>
       <div className="flex min-h-screen flex-col bg-white text-zinc-900">
         <Header settings={settings} />
@@ -19,5 +21,6 @@ export default async function StoreLayout({ children }: { children: React.ReactN
         <Toaster position="bottom-center" richColors />
       </div>
     </StoreProvider>
+    </AuthProvider>
   );
 }

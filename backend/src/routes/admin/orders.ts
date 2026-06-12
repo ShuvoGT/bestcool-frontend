@@ -6,6 +6,7 @@ import { prisma } from "../../lib/prisma";
 import { asyncHandler, notFound } from "../../lib/errors";
 import { validate } from "../../middleware/validate";
 import { updateOrderStatus } from "../../services/orders";
+import { notifyPaymentConfirmed, notifyStatusChange } from "../../services/notifications";
 import { serializeOrder } from "../../services/serializers";
 
 export const adminOrdersRouter = Router();
@@ -90,6 +91,8 @@ adminOrdersRouter.put(
   validate({ body: z.object({ status: z.nativeEnum(DeliveryStatus), note: z.string().max(500).optional() }) }),
   asyncHandler(async (req, res) => {
     const order = await updateOrderStatus(req.params.id, req.body.status, req.body.note);
+    // Customer email + SMS — fire-and-forget.
+    void notifyStatusChange(order.id, order.status);
     res.json({ order: { id: order.id, status: order.status } });
   })
 );
@@ -111,6 +114,7 @@ adminOrdersRouter.put(
         },
       },
     });
+    if (req.body.paymentStatus === "PAID") void notifyPaymentConfirmed(order.id);
     res.json({ order: { id: order.id, paymentStatus: order.paymentStatus } });
   })
 );
