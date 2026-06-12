@@ -8,8 +8,8 @@ A production-quality electronics e-commerce web application for the Bangladesh m
 - **Couriers**: Steadfast, Pathao, RedX
 - **Notifications**: Email (Nodemailer/SMTP) + SMS (provider-agnostic gateway)
 
-> **Build status**: Phase 1 complete (scaffolding, database schema, migrations, seed data).
-> Phases 2–8 (API, admin panel, storefront, checkout, payments, couriers, analytics) are in progress.
+> **Build status**: Phase 1 (scaffolding, schema, seed) and Phase 2 (full backend REST API) complete.
+> Phases 3–8 (admin panel, storefront, checkout, payments, couriers, analytics) are in progress.
 
 ---
 
@@ -138,3 +138,49 @@ the admin Settings page and injected at runtime (no redeploy needed).
 
 Payment sandbox setup notes, courier API setup notes, and SMS gateway setup notes
 will be expanded in this README as those phases are built (Phases 5–8).
+
+---
+
+## API overview (Phase 2)
+
+All endpoints are under `http://localhost:5000/api`. Auth uses a JWT in an
+httpOnly cookie set by `/auth/login` / `/auth/register`. Admin endpoints
+(`/api/admin/*`) require the `ADMIN` role.
+
+| Area | Endpoints |
+|---|---|
+| Auth | `POST /auth/register`, `POST /auth/login`, `POST /auth/logout`, `GET /auth/me`, `PUT /auth/profile`, `PUT /auth/change-password`, `POST /auth/forgot-password`, `POST /auth/reset-password`, `GET/POST/PUT/DELETE /auth/addresses` |
+| Catalog | `GET /products` (filters/sort/search/pagination), `GET /products/:slug`, `GET /products/:slug/related`, `GET/POST /products/:slug/reviews`, `GET /categories` |
+| CMS & config | `GET /pages/:slug` (blocks enriched with live product/flash data), `GET /settings/public`, `GET /delivery-zones`, `GET /flash-sales/current` |
+| Cart & wishlist | `GET/POST/PUT/DELETE /cart`, `POST /cart/merge`, `GET/POST/DELETE /wishlist`, `POST /wishlist/merge` (logged-in users; guests use localStorage) |
+| Orders | `POST /orders` (guest checkout supported — auto-creates an account per spec §6), `GET /orders/my`, `GET /orders/my/:orderNumber` |
+| Admin | `/admin/products`, `/admin/categories`, `/admin/uploads`, `/admin/pages` (block editor API), `/admin/flash-sales` (with overlap protection), `/admin/orders` (status flow + payment status), `/admin/customers`, `/admin/dashboard/stats`, `/admin/settings`, `/admin/delivery-zones` |
+
+Security: Zod validation on every input, sanitize-html on all rich text /
+user content, bcrypt passwords, rate limiting on auth & checkout, server-side
+price resolution (client prices are never trusted), role-gated admin API.
+
+---
+
+## Deploying (GitHub + Vercel)
+
+This is a **two-app architecture** — Vercel hosts the Next.js frontend, while
+the Express API and PostgreSQL need their own homes:
+
+| Piece | Where | Notes |
+|---|---|---|
+| `/frontend` | **Vercel** | Import the GitHub repo, set **Root Directory = `frontend`**. Set `NEXT_PUBLIC_API_URL` + `NEXT_PUBLIC_SITE_URL` env vars. |
+| `/backend` | **Render / Railway** (free tier) | Root directory `backend`, build `npm install && npx prisma migrate deploy && npm run build`, start `npm start`. Copy every var from `backend/.env.example`. |
+| PostgreSQL | **Neon** (free) or Railway Postgres | Put the connection string in the backend's `DATABASE_URL`, run `npx prisma migrate deploy` + `npm run seed` once. |
+| Uploads | Local disk works on a persistent server; on ephemeral hosts swap `LocalStorageProvider` for S3/Cloudflare R2 (one line in `backend/src/storage/index.ts`) | Planned as part of go-live hardening. |
+
+**Cookie caveat for production**: the JWT cookie is `SameSite=Lax`, which only
+works when the frontend and API share a site (e.g. `nextmart.com.bd` +
+`api.nextmart.com.bd`). With a `*.vercel.app` frontend talking to a
+`*.onrender.com` API you'd need `SameSite=None; Secure` — prefer a custom
+domain with an `api.` subdomain when going live.
+
+To publish: create a GitHub repo, then
+`git remote add origin <repo-url> && git push -u origin main`.
+(`.env` files, `node_modules`, and the portable `/tools` are already git-ignored —
+only `.env.example` templates are committed.)
