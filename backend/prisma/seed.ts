@@ -208,6 +208,20 @@ async function seedProducts(categories: { id: string; slug: string }[]) {
     },
   ];
 
+  // Brand per product (powers the shop "filter by brand").
+  const BRANDS: Record<string, string> = {
+    "samsung-galaxy-a56-5g": "Samsung",
+    "xiaomi-redmi-note-14-pro": "Xiaomi",
+    "iphone-16": "Apple",
+    "asus-vivobook-16-i5-13gen": "ASUS",
+    "macbook-air-13-m4": "Apple",
+    "lenovo-ideapad-slim-3-ryzen-5": "Lenovo",
+    "anker-soundcore-q20i": "Anker",
+    "baseus-65w-gan-charger": "Baseus",
+    "apple-watch-se-2nd-gen-40mm": "Apple",
+    "amazfit-gts-4-mini": "Amazfit",
+  };
+
   for (const p of products) {
     await prisma.product.upsert({
       where: { slug: p.slug },
@@ -215,6 +229,7 @@ async function seedProducts(categories: { id: string; slug: string }[]) {
       create: {
         name: p.name,
         slug: p.slug,
+        brand: BRANDS[p.slug] ?? null,
         description: p.description,
         sku: p.sku,
         regularPrice: p.regularPrice,

@@ -86,6 +86,7 @@ adminProductsRouter.get(
 const productBody = z.object({
   name: z.string().min(2).max(200),
   slug: z.string().max(200).optional(),
+  brand: z.string().max(100).nullable().optional(),
   description: z.string().max(50000).default(""),
   sku: z.string().max(50).nullable().optional(),
   regularPrice: z.number().min(0),
@@ -125,6 +126,7 @@ adminProductsRouter.post(
       data: {
         name: body.name,
         slug: body.slug?.trim() || slugify(body.name),
+        brand: body.brand ?? null,
         description: sanitizeRichText(body.description),
         sku: body.sku ?? null,
         regularPrice: body.regularPrice,
@@ -160,6 +162,7 @@ adminProductsRouter.put(
         data: {
           name: body.name,
           slug: body.slug?.trim() || existing.slug,
+          brand: body.brand ?? null,
           description: sanitizeRichText(body.description),
           sku: body.sku ?? null,
           regularPrice: body.regularPrice,

@@ -19,6 +19,7 @@ import {
 export type ProductFormValues = {
   name: string;
   slug: string;
+  brand: string;
   description: string;
   sku: string;
   regularPrice: number | "";
@@ -32,7 +33,7 @@ export type ProductFormValues = {
 };
 
 export const emptyProduct: ProductFormValues = {
-  name: "", slug: "", description: "", sku: "",
+  name: "", slug: "", brand: "", description: "", sku: "",
   regularPrice: "", salePrice: "", stock: 0, lowStockThreshold: 5,
   isActive: true, categoryId: "", images: [], variants: [],
 };
@@ -57,6 +58,7 @@ export function ProductForm({ initial, productId }: { initial: ProductFormValues
       const body = {
         name: form.name,
         slug: form.slug || undefined,
+        brand: form.brand || null,
         description: form.description,
         sku: form.sku || null,
         regularPrice: Number(form.regularPrice),
@@ -116,6 +118,7 @@ export function ProductForm({ initial, productId }: { initial: ProductFormValues
             <TextField label="Name" value={form.name} onChange={(v) => set({ name: v })} required />
             <TextField label="Slug (auto if blank)" value={form.slug} onChange={(v) => set({ slug: v })} placeholder="my-product" />
             <TextField label="SKU" value={form.sku} onChange={(v) => set({ sku: v })} />
+            <TextField label="Brand" value={form.brand} onChange={(v) => set({ brand: v })} placeholder="e.g. Samsung" />
             <div className="space-y-1.5">
               <Label className="text-zinc-300">Category</Label>
               <Select value={form.categoryId} onValueChange={(v) => set({ categoryId: v })}>

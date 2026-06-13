@@ -28,6 +28,7 @@ export function serializeProductCard(p: ProductWithRelations, flash?: FlashInfo)
     isActive: p.isActive,
     soldCount: p.soldCount,
     image: p.images[0]?.url ?? null,
+    brand: p.brand,
     category: p.category ? { id: p.category.id, name: p.category.name, slug: p.category.slug } : null,
     rating: {
       average: ratings.length ? Math.round((ratings.reduce((a, b) => a + b, 0) / ratings.length) * 10) / 10 : 0,

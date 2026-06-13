@@ -54,6 +54,7 @@ export type ProductCardData = {
   stock: number;
   soldCount: number;
   image: string | null;
+  brand: string | null;
   category: { id: string; name: string; slug: string } | null;
   rating: { average: number; count: number };
   hasVariants: boolean;
@@ -93,6 +94,13 @@ export async function getCategories() {
     "/categories"
   );
   return res?.categories ?? [];
+}
+
+/** Available brands for the shop "filter by brand", optionally scoped to a category. */
+export async function getBrands(category?: string) {
+  const qs = category ? `?category=${encodeURIComponent(category)}` : "";
+  const res = await get<{ brands: { name: string; count: number }[] }>(`/products/brands${qs}`);
+  return res?.brands ?? [];
 }
 
 export type FlashSaleData = {

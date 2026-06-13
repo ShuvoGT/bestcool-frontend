@@ -24,6 +24,8 @@ productsRouter.get(
   validate({
     query: z.object({
       category: z.string().optional(),
+      // Comma-separated brand names (the shop's brand checkboxes).
+      brand: z.string().optional(),
       minPrice: z.coerce.number().min(0).optional(),
       maxPrice: z.coerce.number().min(0).optional(),
       sort: z.enum(["newest", "price_asc", "price_desc", "popularity"]).default("newest"),
@@ -33,14 +35,16 @@ productsRouter.get(
     }),
   }),
   asyncHandler(async (req, res) => {
-    const { category, minPrice, maxPrice, sort, search, page, limit } = req.query as unknown as {
-      category?: string; minPrice?: number; maxPrice?: number;
+    const { category, brand, minPrice, maxPrice, sort, search, page, limit } = req.query as unknown as {
+      category?: string; brand?: string; minPrice?: number; maxPrice?: number;
       sort: string; search?: string; page: number; limit: number;
     };
+    const brands = brand ? brand.split(",").map((b) => b.trim()).filter(Boolean) : [];
 
     const where: Prisma.ProductWhereInput = {
       isActive: true,
       ...(category ? { category: { slug: category } } : {}),
+      ...(brands.length ? { brand: { in: brands } } : {}),
       ...(search
         ? { OR: [{ name: { contains: search, mode: "insensitive" } }, { sku: { contains: search, mode: "insensitive" } }] }
         : {}),
@@ -75,6 +79,24 @@ productsRouter.get(
       page,
       pages: Math.max(1, Math.ceil(total / limit)),
     });
+  })
+);
+
+// --- Brands (for the shop "filter by brand"), optionally scoped to category --
+productsRouter.get(
+  "/brands",
+  validate({ query: z.object({ category: z.string().optional() }) }),
+  asyncHandler(async (req, res) => {
+    const { category } = req.query as unknown as { category?: string };
+    const grouped = await prisma.product.groupBy({
+      by: ["brand"],
+      where: { isActive: true, brand: { not: null }, ...(category ? { category: { slug: category } } : {}) },
+      _count: { _all: true },
+    });
+    const brands = grouped
+      .map((g) => ({ name: g.brand as string, count: g._count._all }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+    res.json({ brands });
   })
 );
 

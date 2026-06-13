@@ -7,7 +7,7 @@ import { Spinner } from "@/components/admin/ui";
 import { ProductForm, type ProductFormValues } from "@/components/admin/ProductForm";
 
 type ProductDetail = {
-  id: string; name: string; slug: string; description: string; sku: string | null;
+  id: string; name: string; slug: string; brand: string | null; description: string; sku: string | null;
   regularPrice: number; salePrice: number | null; stock: number; lowStockThreshold: number;
   isActive: boolean; category: { id: string } | null;
   images: { url: string; alt: string | null }[];
@@ -23,6 +23,7 @@ export default function EditProductPage() {
   const initial: ProductFormValues = {
     name: data.name,
     slug: data.slug,
+    brand: data.brand ?? "",
     description: data.description,
     sku: data.sku ?? "",
     regularPrice: data.regularPrice,

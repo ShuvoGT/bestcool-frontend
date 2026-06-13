@@ -149,6 +149,7 @@ model Product {
   id                String   @id @default(cuid())
   name              String
   slug              String   @unique
+  brand             String? // for the shop "filter by brand"
   description       String   @default("") // sanitized rich-text HTML
   sku               String?  @unique
   regularPrice      Decimal  @db.Decimal(12, 2)
@@ -173,6 +174,7 @@ model Product {
 
   @@index([categoryId])
   @@index([isActive])
+  @@index([brand])
 }
 
 model ProductImage {
