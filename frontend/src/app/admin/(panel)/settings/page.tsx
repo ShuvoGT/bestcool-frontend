@@ -94,6 +94,12 @@ export default function AdminSettingsPage() {
   const ssl = get<Gw>("payment.sslcommerz", {});
   const gwField = (key: string, gw: Gw, field: string, value: string) => set(key, { ...gw, [field]: value });
 
+  // Courier credentials (managed here, used by admin "Send to Courier").
+  const courierMode = get<string>("courier.mode", "sandbox");
+  const steadfast = get<Gw>("courier.steadfast", {});
+  const pathao = get<Gw>("courier.pathao", {});
+  const redx = get<Gw>("courier.redx", {});
+
   const tabCls = "data-[state=active]:bg-cyan-500/15 data-[state=active]:text-cyan-300 text-zinc-400";
 
   return (
@@ -114,6 +120,7 @@ export default function AdminSettingsPage() {
           <TabsTrigger value="menus" className={tabCls}>Menus & Footer</TabsTrigger>
           <TabsTrigger value="integrations" className={tabCls}>Integrations</TabsTrigger>
           <TabsTrigger value="payments" className={tabCls}>Payments</TabsTrigger>
+          <TabsTrigger value="couriers" className={tabCls}>Couriers</TabsTrigger>
           <TabsTrigger value="sms" className={tabCls}>SMS</TabsTrigger>
           <TabsTrigger value="delivery" className={tabCls}>Delivery</TabsTrigger>
         </TabsList>
@@ -311,6 +318,61 @@ export default function AdminSettingsPage() {
               <TextField label="Store Password" value={String(ssl.storePassword ?? "")} onChange={(v) => gwField("payment.sslcommerz", ssl, "storePassword", v)} />
             </div>
             <p className="text-xs text-zinc-500">Free sandbox store: developer.sslcommerz.com — the quickest gateway to test.</p>
+          </GlassCard>
+        </TabsContent>
+
+        {/* Couriers */}
+        <TabsContent value="couriers" className="space-y-6">
+          <GlassCard className="space-y-4 p-5">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-400">Mode</h2>
+            <div className="flex gap-2">
+              {(["sandbox", "live"] as const).map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => set("courier.mode", mode)}
+                  className={`rounded-lg border px-4 py-2 text-sm font-medium capitalize transition-all ${
+                    courierMode === mode ? "border-cyan-400/40 bg-cyan-500/15 text-cyan-300" : "border-white/10 bg-white/5 text-zinc-400"
+                  }`}
+                >
+                  {mode}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-zinc-500">
+              Couriers are used from an order&apos;s <span className="text-zinc-300">Send to Courier</span> action. A courier
+              appears there only when it&apos;s enabled and its credentials are filled in — otherwise it&apos;s hidden.
+            </p>
+          </GlassCard>
+
+          {/* Steadfast */}
+          <GlassCard className="space-y-4 p-5">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-400">Steadfast</h2>
+            <SwitchField label="Enable Steadfast" checked={steadfast.enabled !== false} onChange={(v) => set("courier.steadfast", { ...steadfast, enabled: v })} />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <TextField label="API Key" value={String(steadfast.apiKey ?? "")} onChange={(v) => gwField("courier.steadfast", steadfast, "apiKey", v)} />
+              <TextField label="Secret Key" value={String(steadfast.secretKey ?? "")} onChange={(v) => gwField("courier.steadfast", steadfast, "secretKey", v)} />
+            </div>
+          </GlassCard>
+
+          {/* Pathao */}
+          <GlassCard className="space-y-4 p-5">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-400">Pathao</h2>
+            <SwitchField label="Enable Pathao" checked={pathao.enabled !== false} onChange={(v) => set("courier.pathao", { ...pathao, enabled: v })} />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <TextField label="Client ID" value={String(pathao.clientId ?? "")} onChange={(v) => gwField("courier.pathao", pathao, "clientId", v)} />
+              <TextField label="Client Secret" value={String(pathao.clientSecret ?? "")} onChange={(v) => gwField("courier.pathao", pathao, "clientSecret", v)} />
+              <TextField label="Username" value={String(pathao.username ?? "")} onChange={(v) => gwField("courier.pathao", pathao, "username", v)} />
+              <TextField label="Password" value={String(pathao.password ?? "")} onChange={(v) => gwField("courier.pathao", pathao, "password", v)} />
+              <TextField label="Store ID" value={String(pathao.storeId ?? "")} onChange={(v) => gwField("courier.pathao", pathao, "storeId", v)} />
+            </div>
+          </GlassCard>
+
+          {/* RedX */}
+          <GlassCard className="space-y-4 p-5">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-400">RedX</h2>
+            <SwitchField label="Enable RedX" checked={redx.enabled !== false} onChange={(v) => set("courier.redx", { ...redx, enabled: v })} />
+            <TextField label="API Access Token" value={String(redx.apiToken ?? "")} onChange={(v) => gwField("courier.redx", redx, "apiToken", v)} />
           </GlassCard>
         </TabsContent>
 

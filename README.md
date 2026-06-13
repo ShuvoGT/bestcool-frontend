@@ -8,12 +8,13 @@ A production-quality electronics e-commerce web application for the Bangladesh m
 - **Couriers**: Steadfast, Pathao, RedX
 - **Notifications**: Email (Nodemailer/SMTP) + SMS (provider-agnostic gateway)
 
-> **Build status**: Phases 1–6 complete — scaffolding/schema/seed, backend REST API,
+> **Build status**: Phases 1–7 complete — scaffolding/schema/seed, backend REST API,
 > admin panel at `/admin`, the full CMS-driven storefront, the complete commerce flow
-> (cart, checkout, COD, guest→auto-account, emails, SMS), and **online payments**:
-> bKash, Nagad and SSLCommerz behind a `PaymentProvider` interface with server-side
-> verification, callbacks and IPN (see "Payment gateways" below).
-> Phases 7–8 (couriers, analytics + polish) are in progress.
+> (cart, checkout, COD, guest→auto-account, emails, SMS), **online payments**
+> (bKash/Nagad/SSLCommerz with server-side verification + IPN), and **courier
+> integration** (Steadfast/Pathao/RedX — send-to-courier, tracking, status sync,
+> webhooks). Both payments and couriers are configured from the admin panel.
+> Phase 8 (Facebook Pixel + GA4 + final polish) is in progress.
 
 **Email & SMS in development**: with no SMTP/SMS credentials in `backend/.env`, every
 email and SMS is printed to the backend console instead of being sent — so you can
@@ -147,7 +148,50 @@ the admin Settings page and injected at runtime (no redeploy needed).
 /tools           Portable Node.js + PostgreSQL for this machine (git-ignored)
 ```
 
-Courier API setup notes will be expanded here when Phase 7 is built.
+---
+
+## Courier gateways (Phase 7) — Steadfast, Pathao, RedX
+
+Three couriers sit behind a single `CourierProvider` interface
+(`backend/src/couriers/`), mirroring the payment architecture. Couriers are an
+**admin-side** feature: the customer never picks a courier — the admin clicks
+**"Send to Courier"** on an order's detail page, and the customer just sees the
+courier name + tracking id once shipped.
+
+**Credentials are managed from Admin → Settings → Couriers** (database; `.env`
+fallback). Set the mode (sandbox/live), each courier's keys, and an enable
+toggle. A courier appears in the order's **Send to Courier** selector **only
+when it is enabled and fully configured** — otherwise it's hidden (driven by
+`GET /api/admin/couriers`). These secrets are admin-only.
+
+`.env` fallback keys (admin-panel values take precedence):
+```
+COURIER_MODE=sandbox            # or live
+COURIER_WEBHOOK_SECRET=...      # shared secret couriers must present on webhooks
+STEADFAST_API_KEY=...  STEADFAST_SECRET_KEY=...
+PATHAO_CLIENT_ID=...  PATHAO_CLIENT_SECRET=...  PATHAO_USERNAME=...  PATHAO_PASSWORD=...  PATHAO_STORE_ID=...
+REDX_API_TOKEN=...
+```
+
+**Get credentials:** Steadfast → portal.packzy.com (API menu); Pathao →
+merchant.pathao.com (Developer API; sandbox base auto-selected by mode); RedX →
+redx.com.bd (Open API). Pathao/RedX parcels need numeric city/zone/area ids —
+the Send-to-Courier form has an optional Zone/Area ID field; use each courier's
+location-lookup endpoints to populate it in production.
+
+**What happens on "Send to Courier":** a form prefilled with the order's
+recipient name/phone/address and COD amount (all editable) → on submit we create
+the consignment, save the courier name + tracking id on the order, and
+auto-advance it to **SHIPPED** (which fires the customer's email + SMS with the
+tracking id). A **Refresh status** button pulls the latest parcel status; a
+courier "delivered" advances the order to DELIVERED, a "returned/cancelled"
+cancels it and restores stock.
+
+**Webhooks:** `POST /api/couriers/{steadfast|pathao|redx}/webhook` accepts push
+status updates, verified server-side against `COURIER_WEBHOOK_SECRET` (sent as
+`?secret=…` or an `X-Webhook-Secret` header) and matched to an order by
+consignment id — a webhook body alone can't move an unrelated order. Configure
+this URL + secret in each courier's webhook settings.
 
 ---
 

@@ -6,12 +6,13 @@ import { useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft, Loader2, Truck } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { useLoad } from "@/lib/hooks";
 import { bdt, formatDateTime } from "@/lib/format";
 import { GlassCard, PageHeader, Spinner, StatusBadge } from "@/components/admin/ui";
+import { CourierPanel } from "@/components/admin/CourierPanel";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -19,7 +20,7 @@ type OrderDetail = {
   id: string; orderNumber: string; status: string; paymentMethod: string; paymentStatus: string;
   subtotal: number; shippingCharge: number; total: number;
   shipping: { name: string; phone: string; email: string; address: string; district: string; notes: string | null; deliveryZone: string };
-  courier: { name: string; consignmentId: string | null; status: string | null } | null;
+  courier: { name: string; consignmentId: string | null; status: string | null; trackingUrl: string | null } | null;
   customer: { id: string; name: string; email: string } | null;
   items: { id: string; name: string; variantName: string | null; image: string | null; unitPrice: number; quantity: number; lineTotal: number }[];
   timeline: { status: string; note: string | null; at: string }[];
@@ -199,21 +200,20 @@ export default function AdminOrderDetailPage() {
             )}
           </GlassCard>
 
-          {/* Courier (full integration in Phase 7) */}
+          {/* Courier — Send to Courier, tracking, status refresh (spec §11) */}
           <GlassCard className="p-5">
-            <h2 className="mb-2 flex items-center gap-2 font-semibold text-zinc-100">
-              <Truck className="h-4 w-4 text-cyan-400" /> Courier
-            </h2>
-            {order.courier ? (
-              <div className="space-y-1 text-sm text-zinc-300">
-                <p>{order.courier.name}</p>
-                <p className="text-zinc-500">Tracking: {order.courier.consignmentId}</p>
-              </div>
-            ) : (
-              <p className="text-sm text-zinc-500">
-                &quot;Send to Courier&quot; (Steadfast / Pathao / RedX) arrives in Phase 7.
-              </p>
-            )}
+            <CourierPanel
+              order={{
+                id: order.id,
+                status: order.status,
+                paymentMethod: order.paymentMethod,
+                paymentStatus: order.paymentStatus,
+                total: order.total,
+                shipping: order.shipping,
+                courier: order.courier,
+              }}
+              onChanged={reload}
+            />
           </GlassCard>
         </div>
       </div>

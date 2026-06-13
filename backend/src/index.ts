@@ -19,6 +19,7 @@ import { categoriesRouter, pagesRouter, settingsRouter, deliveryZonesRouter, fla
 import { cartRouter, wishlistRouter } from "./routes/cartWishlist";
 import { ordersRouter } from "./routes/orders";
 import { paymentsRouter } from "./routes/payments";
+import { couriersRouter } from "./routes/couriers";
 import { reconcilePendingPayments } from "./services/payments";
 
 import { adminProductsRouter, adminCategoriesRouter, adminUploadsRouter } from "./routes/admin/products";
@@ -26,6 +27,7 @@ import { adminPagesRouter } from "./routes/admin/pages";
 import { adminFlashSalesRouter } from "./routes/admin/flashSales";
 import { adminOrdersRouter, adminCustomersRouter, adminDashboardRouter } from "./routes/admin/orders";
 import { adminSettingsRouter, adminDeliveryZonesRouter } from "./routes/admin/settings";
+import { adminCouriersRouter } from "./routes/admin/couriers";
 
 const app = express();
 
@@ -61,6 +63,7 @@ app.use("/api/cart", cartRouter);
 app.use("/api/wishlist", wishlistRouter);
 app.use("/api/orders", ordersRouter);
 app.use("/api/payments", paymentsRouter);
+app.use("/api/couriers", couriersRouter);
 
 // --- Admin API (role-gated) ---------------------------------------------------
 app.use("/api/admin", requireAdmin);
@@ -74,6 +77,7 @@ app.use("/api/admin/customers", adminCustomersRouter);
 app.use("/api/admin/dashboard", adminDashboardRouter);
 app.use("/api/admin/settings", adminSettingsRouter);
 app.use("/api/admin/delivery-zones", adminDeliveryZonesRouter);
+app.use("/api/admin/couriers", adminCouriersRouter);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

@@ -44,6 +44,27 @@ export const env = {
       storePassword: process.env.SSLCOMMERZ_STORE_PASSWORD || "",
     },
   },
+
+  // --- Couriers ---
+  // sandbox | live — selects each courier's base URL (validated below).
+  courierMode: ((process.env.COURIER_MODE || "sandbox").trim().toLowerCase()) as "sandbox" | "live",
+  courierWebhookSecret: process.env.COURIER_WEBHOOK_SECRET || "",
+  courier: {
+    steadfast: {
+      apiKey: process.env.STEADFAST_API_KEY || "",
+      secretKey: process.env.STEADFAST_SECRET_KEY || "",
+    },
+    pathao: {
+      clientId: process.env.PATHAO_CLIENT_ID || "",
+      clientSecret: process.env.PATHAO_CLIENT_SECRET || "",
+      username: process.env.PATHAO_USERNAME || "",
+      password: process.env.PATHAO_PASSWORD || "",
+      storeId: process.env.PATHAO_STORE_ID || "",
+    },
+    redx: {
+      apiToken: process.env.REDX_API_TOKEN || "",
+    },
+  },
 };
 
 if (!env.jwtSecret) {
@@ -57,4 +78,11 @@ if (env.paymentMode !== "sandbox" && env.paymentMode !== "live") {
 }
 if (env.isProd && env.paymentMode === "sandbox") {
   console.warn("⚠ PAYMENT_MODE=sandbox while NODE_ENV=production — real customers would hit sandbox gateways.");
+}
+
+if (env.courierMode !== "sandbox" && env.courierMode !== "live") {
+  throw new Error(`COURIER_MODE must be "sandbox" or "live" (got "${process.env.COURIER_MODE}")`);
+}
+if (env.isProd && !env.courierWebhookSecret) {
+  console.warn("⚠ COURIER_WEBHOOK_SECRET is empty — all courier webhooks will be rejected. Set it to enable push status updates.");
 }

@@ -8,6 +8,7 @@ import { validate } from "../../middleware/validate";
 import { updateOrderStatus } from "../../services/orders";
 import { notifyPaymentConfirmed, notifyStatusChange } from "../../services/notifications";
 import { reconcilePendingPayments } from "../../services/payments";
+import { sendToCourier, refreshCourierStatus } from "../../services/couriers";
 import { serializeOrder } from "../../services/serializers";
 
 export const adminOrdersRouter = Router();
@@ -95,6 +96,37 @@ adminOrdersRouter.put(
     // Customer email + SMS — fire-and-forget.
     void notifyStatusChange(order.id, order.status);
     res.json({ order: { id: order.id, status: order.status } });
+  })
+);
+
+// Send an order to a courier (spec §11). Creates the consignment, saves the
+// tracking id, and auto-advances the order to SHIPPED (fires email/SMS).
+adminOrdersRouter.post(
+  "/:id/send-to-courier",
+  validate({
+    body: z.object({
+      courier: z.enum(["STEADFAST", "PATHAO", "REDX"]),
+      recipientName: z.string().min(2).max(100),
+      recipientPhone: z.string().min(11).max(15),
+      recipientAddress: z.string().min(5).max(500),
+      recipientCity: z.string().min(2).max(100),
+      recipientZone: z.string().max(100).optional(),
+      codAmount: z.number().min(0),
+      weightKg: z.number().min(0).max(50).optional(),
+      note: z.string().max(500).optional(),
+    }),
+  }),
+  asyncHandler(async (req, res) => {
+    const result = await sendToCourier(req.params.id, req.body);
+    res.json(result);
+  })
+);
+
+// Pull the latest parcel status from the courier API.
+adminOrdersRouter.post(
+  "/:id/refresh-courier",
+  asyncHandler(async (req, res) => {
+    res.json(await refreshCourierStatus(req.params.id));
   })
 );
 
