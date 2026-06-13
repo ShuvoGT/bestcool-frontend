@@ -10,16 +10,26 @@ function SuccessContent() {
   const params = useSearchParams();
   const orderNumber = params.get("order");
   const isNewAccount = params.get("new") === "1";
+  const paid = params.get("paid") === "1";
+  const pending = params.get("pending") === "1";
 
   return (
     <div className="mx-auto flex max-w-xl flex-col items-center gap-5 px-4 py-20 text-center">
       <CheckCircle2 className="h-16 w-16 text-emerald-500" />
-      <h1 className="text-3xl font-extrabold tracking-tight text-zinc-900">Order placed successfully!</h1>
+      <h1 className="text-3xl font-extrabold tracking-tight text-zinc-900">
+        {paid ? "Payment received — order confirmed!" : "Order placed successfully!"}
+      </h1>
       {orderNumber && (
         <p className="text-zinc-600">
           Your order number is <span className="font-bold text-zinc-900">{orderNumber}</span>.
-          A confirmation email and SMS are on their way.
+          {paid ? " Your payment was verified successfully." : " A confirmation email and SMS are on their way."}
         </p>
+      )}
+      {pending && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-left text-sm text-amber-800">
+          Your order is saved, but online payment couldn&apos;t start. You can pay later from
+          <strong> My Orders</strong>, or our team will reach out to arrange payment.
+        </div>
       )}
       {isNewAccount && (
         <div className="flex items-start gap-3 rounded-xl border border-blue-200 bg-blue-50 p-4 text-left">

@@ -18,6 +18,9 @@ import { productsRouter } from "./routes/products";
 import { categoriesRouter, pagesRouter, settingsRouter, deliveryZonesRouter, flashSalesRouter } from "./routes/catalogPublic";
 import { cartRouter, wishlistRouter } from "./routes/cartWishlist";
 import { ordersRouter } from "./routes/orders";
+import { paymentsRouter } from "./routes/payments";
+import { listOnlineMethods } from "./payments";
+import { reconcilePendingPayments } from "./services/payments";
 
 import { adminProductsRouter, adminCategoriesRouter, adminUploadsRouter } from "./routes/admin/products";
 import { adminPagesRouter } from "./routes/admin/pages";
@@ -29,6 +32,8 @@ const app = express();
 
 app.use(cors({ origin: env.frontendUrl, credentials: true }));
 app.use(express.json({ limit: "2mb" }));
+// Payment gateways POST callbacks/IPN as application/x-www-form-urlencoded.
+app.use(express.urlencoded({ extended: true, limit: "2mb" }));
 app.use(cookieParser());
 app.use(attachUser);
 
@@ -56,6 +61,7 @@ app.use("/api/flash-sales", flashSalesRouter);
 app.use("/api/cart", cartRouter);
 app.use("/api/wishlist", wishlistRouter);
 app.use("/api/orders", ordersRouter);
+app.use("/api/payments", paymentsRouter);
 
 // --- Admin API (role-gated) ---------------------------------------------------
 app.use("/api/admin", requireAdmin);
@@ -75,4 +81,23 @@ app.use(errorHandler);
 
 app.listen(env.port, () => {
   console.log(`Next Mart API running on http://localhost:${env.port} (${env.nodeEnv})`);
+
+  // Warn if live mode is selected but a gateway has no credentials.
+  if (env.paymentMode === "live") {
+    for (const m of listOnlineMethods()) {
+      if (!m.configured) console.warn(`⚠ PAYMENT_MODE=live but ${m.method} has no credentials configured.`);
+    }
+  }
+
+  // Reconciliation sweep: settle bKash/Nagad orders whose browser redirect
+  // never landed. Only runs when at least one such gateway is configured.
+  const hasOnlineGateway = listOnlineMethods().some((m) => m.configured);
+  if (hasOnlineGateway) {
+    const RECONCILE_EVERY_MS = 5 * 60 * 1000;
+    setInterval(() => {
+      reconcilePendingPayments()
+        .then((r) => r.settled > 0 && console.log(`Payment reconcile: settled ${r.settled}/${r.checked} pending order(s)`))
+        .catch((err) => console.error("Payment reconcile sweep failed:", err));
+    }, RECONCILE_EVERY_MS).unref();
+  }
 });

@@ -22,13 +22,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
 type Zone = { id: string; name: string; charge: number };
+type Method = { method: string; label: string; configured: boolean };
 
-const PAYMENT_METHODS = [
-  { value: "COD", label: "Cash on Delivery", sub: "Pay when you receive", icon: Banknote, enabled: true },
-  { value: "BKASH", label: "bKash", sub: "Online payments launch soon", icon: Smartphone, enabled: false },
-  { value: "NAGAD", label: "Nagad", sub: "Online payments launch soon", icon: Smartphone, enabled: false },
-  { value: "SSLCOMMERZ", label: "Card / Net Banking", sub: "Online payments launch soon", icon: CreditCard, enabled: false },
-];
+const METHOD_META: Record<string, { sub: string; icon: typeof Banknote }> = {
+  COD: { sub: "Pay when you receive", icon: Banknote },
+  BKASH: { sub: "Pay with bKash", icon: Smartphone },
+  NAGAD: { sub: "Pay with Nagad", icon: Smartphone },
+  SSLCOMMERZ: { sub: "Card / Net Banking / Mobile banking", icon: CreditCard },
+};
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -36,6 +37,7 @@ export default function CheckoutPage() {
   const { user } = useAuth();
   const [zones, setZones] = useState<Zone[]>([]);
   const [zoneId, setZoneId] = useState("");
+  const [methods, setMethods] = useState<Method[]>([{ method: "COD", label: "Cash on Delivery", configured: true }]);
   const [payment, setPayment] = useState("COD");
   const [placing, setPlacing] = useState(false);
   const [form, setForm] = useState({ name: "", phone: "", email: "", address: "", district: "", notes: "" });
@@ -47,6 +49,9 @@ export default function CheckoutPage() {
         if (r.zones[0]) setZoneId(r.zones[0].id);
       })
       .catch(() => toast.error("Could not load delivery options — is the API running?"));
+    api<{ methods: Method[] }>("/payments/methods")
+      .then((r) => setMethods(r.methods))
+      .catch(() => undefined); // COD-only fallback already set
   }, []);
 
   // Prefill from the logged-in user's profile + default address.
@@ -78,7 +83,7 @@ export default function CheckoutPage() {
     if (!zoneId) return toast.error("Please select a delivery method");
     setPlacing(true);
     try {
-      const res = await api<{ orderNumber: string; accountCreated: boolean }>("/orders", {
+      const res = await api<{ orderNumber: string; accountCreated: boolean; paymentMethod: string; paymentToken?: string }>("/orders", {
         method: "POST",
         body: {
           customer: { name: form.name, email: form.email, phone: form.phone },
@@ -88,8 +93,27 @@ export default function CheckoutPage() {
           items: cart.map((c) => ({ productId: c.productId, variantId: c.variantId, quantity: c.quantity })),
         },
       });
+      // The order exists now — safe to clear the cart regardless of payment.
       clearCart();
-      router.replace(`/order-success?order=${res.orderNumber}&new=${res.accountCreated ? 1 : 0}`);
+
+      if (res.paymentMethod === "COD") {
+        router.replace(`/order-success?order=${res.orderNumber}&new=${res.accountCreated ? 1 : 0}`);
+        return;
+      }
+
+      // Online payment: start a gateway session and hand off to the gateway.
+      // The payment token authorises this for guests (no login required).
+      try {
+        const pay = await api<{ redirectUrl: string }>("/payments/initiate", {
+          method: "POST",
+          body: { orderNumber: res.orderNumber, paymentToken: res.paymentToken },
+        });
+        window.location.href = pay.redirectUrl;
+      } catch (payErr) {
+        // Order is saved; payment couldn't start (e.g. gateway not configured).
+        toast.error(payErr instanceof Error ? payErr.message : "Could not start payment");
+        router.replace(`/order-success?order=${res.orderNumber}&new=${res.accountCreated ? 1 : 0}&pending=1`);
+      }
     } catch (err) {
       const msg = err instanceof ApiError && err.details?.length ? err.details.join("; ") : err instanceof Error ? err.message : "Order failed";
       toast.error(msg);
@@ -169,25 +193,30 @@ export default function CheckoutPage() {
           <section className="rounded-xl border border-zinc-200 p-5 sm:p-6">
             <h2 className="mb-4 text-lg font-bold text-zinc-900">3. Payment Method</h2>
             <div className="grid gap-3 sm:grid-cols-2">
-              {PAYMENT_METHODS.map(({ value, label, sub, icon: Icon, enabled }) => (
-                <button
-                  key={value}
-                  type="button"
-                  disabled={!enabled}
-                  onClick={() => setPayment(value)}
-                  className={cn(
-                    "flex items-center gap-3 rounded-xl border-2 px-4 py-3.5 text-left transition-all",
-                    payment === value ? "border-blue-600 bg-blue-50" : "border-zinc-200 hover:border-zinc-300",
-                    !enabled && "cursor-not-allowed opacity-45"
-                  )}
-                >
-                  <Icon className="h-5 w-5 shrink-0 text-blue-600" />
-                  <span>
-                    <span className="block font-semibold text-zinc-900">{label}</span>
-                    <span className="block text-xs text-zinc-500">{sub}</span>
-                  </span>
-                </button>
-              ))}
+              {methods.map((m) => {
+                const meta = METHOD_META[m.method] ?? { sub: "", icon: CreditCard };
+                const Icon = meta.icon;
+                const disabled = !m.configured;
+                return (
+                  <button
+                    key={m.method}
+                    type="button"
+                    disabled={disabled}
+                    onClick={() => setPayment(m.method)}
+                    className={cn(
+                      "flex items-center gap-3 rounded-xl border-2 px-4 py-3.5 text-left transition-all",
+                      payment === m.method ? "border-blue-600 bg-blue-50" : "border-zinc-200 hover:border-zinc-300",
+                      disabled && "cursor-not-allowed opacity-45"
+                    )}
+                  >
+                    <Icon className="h-5 w-5 shrink-0 text-blue-600" />
+                    <span>
+                      <span className="block font-semibold text-zinc-900">{m.label}</span>
+                      <span className="block text-xs text-zinc-500">{disabled ? "Not available yet" : meta.sub}</span>
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </section>
         </div>

@@ -2,14 +2,17 @@
 
 /** Customer order detail: items, totals, payment, address, status timeline,
  *  and courier + tracking ID once shipped (spec §7). */
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ArrowLeft, Truck } from "lucide-react";
+import { ArrowLeft, CreditCard, Loader2, Truck } from "lucide-react";
+import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { useLoad } from "@/lib/hooks";
 import { bdt, formatDateTime } from "@/lib/format";
 import { OrderStatusBadge } from "@/components/store/OrderStatusBadge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type Order = {
@@ -28,9 +31,24 @@ export default function OrderDetailPage() {
     () => api<{ order: Order }>(`/orders/my/${orderNumber}`).then((r) => r.order),
     [orderNumber]
   );
+  const [paying, setPaying] = useState(false);
+
+  async function payNow() {
+    setPaying(true);
+    try {
+      const res = await api<{ redirectUrl: string }>(`/orders/my/${orderNumber}/pay`, { method: "POST" });
+      window.location.href = res.redirectUrl;
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Could not start payment");
+      setPaying(false);
+    }
+  }
 
   if (loading) return <Skeleton className="h-96 w-full rounded-xl" />;
   if (!order) return <p className="text-sm text-zinc-500">Order not found.</p>;
+
+  // Online order still awaiting payment → allow retry.
+  const canPay = order.paymentMethod !== "COD" && ["PENDING", "FAILED"].includes(order.paymentStatus) && order.status !== "CANCELLED";
 
   return (
     <div>
@@ -42,11 +60,22 @@ export default function OrderDetailPage() {
           <h1 className="text-2xl font-extrabold tracking-tight text-zinc-900">{order.orderNumber}</h1>
           <p className="text-xs text-zinc-400">Placed {formatDateTime(order.createdAt)}</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
           <OrderStatusBadge status={order.paymentStatus} />
           <OrderStatusBadge status={order.status} />
         </div>
       </div>
+
+      {canPay && (
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-blue-200 bg-blue-50 p-4">
+          <p className="text-sm text-blue-900">
+            This order is awaiting payment via <strong>{order.paymentMethod}</strong>.
+          </p>
+          <Button onClick={payNow} disabled={paying} className="gap-1.5 bg-blue-600 text-white hover:bg-blue-700">
+            {paying ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />} Pay now — {bdt(order.total)}
+          </Button>
+        </div>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-[1fr_300px]">
         <div className="space-y-6">

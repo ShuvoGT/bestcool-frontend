@@ -69,7 +69,10 @@ async function nextOrderNumber(tx: Prisma.TransactionClient): Promise<string> {
 export async function createOrder(input: CreateOrderInput, authedUserId?: string): Promise<CreateOrderResult> {
   if (!input.items.length) throw badRequest("Order must contain at least one item");
 
-  const result = await prisma.$transaction(async (tx) => {
+  // nextOrderNumber() derives from COUNT(*), so two concurrent checkouts can
+  // briefly pick the same number; the unique constraint rejects the loser and
+  // we retry with a fresh number. Stock decrements roll back with the txn.
+  const run = () => prisma.$transaction(async (tx) => {
     const zone = await tx.deliveryZone.findFirst({ where: { id: input.deliveryZoneId, isActive: true } });
     if (!zone) throw badRequest("Invalid delivery method");
 
@@ -151,7 +154,18 @@ export async function createOrder(input: CreateOrderInput, authedUserId?: string
     return { orderId: order.id, orderNumber, ...userInfo };
   });
 
-  return result;
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await run();
+    } catch (err) {
+      const dupOrderNumber =
+        err instanceof Prisma.PrismaClientKnownRequestError &&
+        err.code === "P2002" &&
+        (err.meta?.target as string[] | undefined)?.includes("orderNumber");
+      if (dupOrderNumber && attempt < 4) continue;
+      throw err;
+    }
+  }
 }
 
 const STATUS_FLOW: Record<DeliveryStatus, DeliveryStatus[]> = {

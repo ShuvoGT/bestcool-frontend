@@ -8,12 +8,12 @@ A production-quality electronics e-commerce web application for the Bangladesh m
 - **Couriers**: Steadfast, Pathao, RedX
 - **Notifications**: Email (Nodemailer/SMTP) + SMS (provider-agnostic gateway)
 
-> **Build status**: Phases 1–5 complete — scaffolding/schema/seed, backend REST API,
-> admin panel at `/admin`, the full CMS-driven storefront, and the complete commerce
-> flow: cart, single-page checkout, COD orders, guest→auto-account creation with
-> credentials email + forced first-login password change, customer dashboard
-> (orders/timeline/addresses/profile), transactional emails, and SMS notifications.
-> Phases 6–8 (bKash/Nagad/SSLCommerz, couriers, analytics) are in progress.
+> **Build status**: Phases 1–6 complete — scaffolding/schema/seed, backend REST API,
+> admin panel at `/admin`, the full CMS-driven storefront, the complete commerce flow
+> (cart, checkout, COD, guest→auto-account, emails, SMS), and **online payments**:
+> bKash, Nagad and SSLCommerz behind a `PaymentProvider` interface with server-side
+> verification, callbacks and IPN (see "Payment gateways" below).
+> Phases 7–8 (couriers, analytics + polish) are in progress.
 
 **Email & SMS in development**: with no SMTP/SMS credentials in `backend/.env`, every
 email and SMS is printed to the backend console instead of being sent — so you can
@@ -147,8 +147,70 @@ the admin Settings page and injected at runtime (no redeploy needed).
 /tools           Portable Node.js + PostgreSQL for this machine (git-ignored)
 ```
 
-Payment sandbox setup notes, courier API setup notes, and SMS gateway setup notes
-will be expanded in this README as those phases are built (Phases 5–8).
+Courier API setup notes will be expanded here when Phase 7 is built.
+
+---
+
+## Payment gateways (Phase 6) — bKash, Nagad, SSLCommerz
+
+All four payment methods sit behind a single `PaymentProvider` interface
+(`backend/src/payments/`). **Cash on Delivery works out of the box.** The three
+online gateways are **fully implemented** but each needs sandbox credentials in
+`backend/.env` before it appears as selectable at checkout — until then the
+storefront shows it as "Not available yet" (driven by `GET /api/payments/methods`).
+
+Set `PAYMENT_MODE=sandbox` (default) or `live` to switch every gateway's base URLs
+at once. Then fill the keys for whichever gateway you want to enable:
+
+### bKash (Tokenized Checkout / PGW)
+Get sandbox credentials from the [bKash merchant portal](https://developer.bka.sh).
+```
+BKASH_APP_KEY=...
+BKASH_APP_SECRET=...
+BKASH_USERNAME=...
+BKASH_PASSWORD=...
+```
+Flow: grant token → create payment (redirect to bKash) → on return we **execute**
+the payment server-side and only trust a `Completed` status.
+
+### Nagad (Payment Gateway)
+Nagad issues sandbox merchant credentials + RSA keys after onboarding. Provide the
+keys as raw base64 or full PEM:
+```
+NAGAD_MERCHANT_ID=...
+NAGAD_MERCHANT_PRIVATE_KEY=...   # your merchant private key (signs requests)
+NAGAD_PG_PUBLIC_KEY=...          # Nagad's PG public key (encrypts payloads)
+```
+Flow: initialize → complete (redirect to Nagad) → on return we call Nagad's
+**verify/payment** API and only trust a `Success` status.
+
+### SSLCommerz (hosted checkout)
+Get a free sandbox store from [developer.sslcommerz.com](https://developer.sslcommerz.com).
+```
+SSLCOMMERZ_STORE_ID=...
+SSLCOMMERZ_STORE_PASSWORD=...
+```
+Flow: init (redirect to SSLCommerz) → on return we call the **validation API**
+with the `val_id` and only trust `VALID`/`VALIDATED`.
+
+### Callback URLs to configure in each gateway dashboard
+The backend exposes per-order callbacks under `API_URL`. The success/fail/cancel/IPN
+URLs are passed automatically at initiation, but if a gateway dashboard asks you to
+whitelist them, the pattern is:
+```
+{API_URL}/api/payments/{bkash|nagad|sslcommerz}/{ORDER_NUMBER}/callback   (bKash, Nagad)
+{API_URL}/api/payments/sslcommerz/{ORDER_NUMBER}/success | /fail | /cancel
+{API_URL}/api/payments/{provider}/{ORDER_NUMBER}/ipn                       (server-to-server IPN)
+```
+On a public deploy set `API_URL` to your backend's public HTTPS URL so gateways can
+reach the callbacks.
+
+**Security guarantees (verified):** an order is *never* marked `PAID` from a client
+redirect alone — both the redirect callback and the IPN run a server-to-server
+verification (`execute`/`verify`/`validate`) against the gateway. Settlement is
+idempotent (duplicate callback + IPN settle once), the gateway-reported amount must
+match the order total, and the callback/IPN endpoints are rate-limited. A spoofed
+callback with a fake transaction id is rejected and the order stays unpaid.
 
 ---
 

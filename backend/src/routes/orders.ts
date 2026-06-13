@@ -8,6 +8,7 @@ import { requireAuth } from "../middleware/auth";
 import { checkoutLimiter } from "../middleware/rateLimit";
 import { createOrder } from "../services/orders";
 import { notifyOrderPlaced } from "../services/notifications";
+import { paymentToken } from "../services/payments";
 import { serializeOrder } from "../services/serializers";
 import { sanitizePlainText } from "../utils/sanitize";
 
@@ -53,7 +54,27 @@ ordersRouter.post(
     res.status(201).json({
       orderNumber: result.orderNumber,
       accountCreated: result.accountCreated,
+      // The storefront uses this to decide whether to start an online payment
+      // session (COD needs none). Server-side price/total is authoritative.
+      paymentMethod: body.paymentMethod,
+      // Authorises the immediate /payments/initiate call for guests (no login).
+      paymentToken: body.paymentMethod === "COD" ? undefined : paymentToken(result.orderNumber),
     });
+  })
+);
+
+// Re-start a payment for an existing unpaid online order (retry / "Pay now").
+ordersRouter.post(
+  "/my/:orderNumber/pay",
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    const order = await prisma.order.findFirst({
+      where: { orderNumber: req.params.orderNumber, userId: req.user!.id },
+    });
+    if (!order) throw notFound("Order not found");
+    const { initiatePayment } = await import("../services/payments");
+    const result = await initiatePayment(order.orderNumber);
+    res.json(result);
   })
 );
 

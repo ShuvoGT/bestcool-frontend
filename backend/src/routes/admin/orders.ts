@@ -7,6 +7,7 @@ import { asyncHandler, notFound } from "../../lib/errors";
 import { validate } from "../../middleware/validate";
 import { updateOrderStatus } from "../../services/orders";
 import { notifyPaymentConfirmed, notifyStatusChange } from "../../services/notifications";
+import { reconcilePendingPayments } from "../../services/payments";
 import { serializeOrder } from "../../services/serializers";
 
 export const adminOrdersRouter = Router();
@@ -94,6 +95,15 @@ adminOrdersRouter.put(
     // Customer email + SMS — fire-and-forget.
     void notifyStatusChange(order.id, order.status);
     res.json({ order: { id: order.id, status: order.status } });
+  })
+);
+
+// Manually run the payment reconciliation sweep (bKash/Nagad orders whose
+// browser redirect never landed). Also runs automatically every 5 minutes.
+adminOrdersRouter.post(
+  "/reconcile-payments",
+  asyncHandler(async (_req, res) => {
+    res.json(await reconcilePendingPayments());
   })
 );
 
