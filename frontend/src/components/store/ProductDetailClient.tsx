@@ -5,12 +5,13 @@
  * quantity, Add to Cart / Buy Now, wishlist, flash countdown, trust badges,
  * and a sticky mobile add-to-cart bar.
  */
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Heart, Minus, Plus, RotateCcw, ShieldCheck, ShoppingCart, Truck, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { useStore } from "@/lib/store";
+import { analytics } from "@/lib/analytics";
 import { bdt } from "@/lib/format";
 import { Countdown } from "@/components/store/Countdown";
 import { RatingStars } from "@/components/store/RatingStars";
@@ -24,6 +25,11 @@ export function ProductDetailClient({ product }: { product: ProductDetailData })
   const [imageIndex, setImageIndex] = useState(0);
   const [variantId, setVariantId] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
+
+  // Marketing analytics — ViewContent once per product view (spec §13).
+  useEffect(() => {
+    analytics.viewContent({ id: product.id, name: product.name, price: product.price, category: product.category?.name });
+  }, [product.id, product.name, product.price, product.category?.name]);
 
   const variant = product.variants.find((v) => v.id === variantId) ?? null;
   const needsVariant = product.variants.length > 0 && !variant;
@@ -223,6 +229,7 @@ export function ProductDetailClient({ product }: { product: ProductDetailData })
             </Button>
             <button
               onClick={() => {
+                if (!wished) analytics.addToWishlist({ id: product.id, name: product.name, price: unitPrice, category: product.category?.name });
                 toggleWishlist({ productId: product.id, slug: product.slug });
                 toast.success(wished ? "Removed from wishlist" : "Added to wishlist");
               }}

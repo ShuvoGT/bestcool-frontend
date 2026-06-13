@@ -8,6 +8,7 @@
  * re-resolves real prices at checkout/order time.
  */
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { analytics } from "@/lib/analytics";
 
 export type CartItem = {
   productId: string;
@@ -72,7 +73,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       cart,
       wishlist,
       ready,
-      addToCart: (item) =>
+      addToCart: (item) => {
+        // Marketing analytics — AddToCart (spec §13).
+        analytics.addToCart({ id: item.productId, name: item.name, price: item.unitPrice, quantity: item.quantity });
         setCart((prev) => {
           const existing = prev.find((c) => keyOf(c.productId, c.variantId) === keyOf(item.productId, item.variantId));
           if (existing) {
@@ -81,7 +84,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
             );
           }
           return [...prev, item];
-        }),
+        });
+      },
       updateQuantity: (productId, variantId, quantity) =>
         setCart((prev) =>
           prev.map((c) =>

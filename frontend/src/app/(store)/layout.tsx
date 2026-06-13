@@ -5,6 +5,8 @@ import { Header } from "@/components/store/Header";
 import { Footer } from "@/components/store/Footer";
 import { MobileBottomNav } from "@/components/store/MobileBottomNav";
 import { WhatsAppButton, ChatEmbed } from "@/components/store/FloatingWidgets";
+import { Analytics } from "@/components/store/Analytics";
+import { CodeSnippets } from "@/components/store/CodeSnippets";
 import { Toaster } from "@/components/ui/sonner";
 
 export default async function StoreLayout({ children }: { children: React.ReactNode }) {
@@ -22,6 +24,8 @@ export default async function StoreLayout({ children }: { children: React.ReactN
         <MobileBottomNav />
         <WhatsAppButton number={settings["whatsapp.number"] ?? null} message={settings["whatsapp.message"] ?? null} />
         <ChatEmbed code={settings["chat.embedCode"] ?? null} />
+        <Analytics pixelId={settings["analytics.facebookPixelId"] ?? null} ga4Id={settings["analytics.ga4MeasurementId"] ?? null} />
+        <CodeSnippets snippets={settings["code.snippets"] ?? []} />
         <Toaster position="bottom-center" richColors />
       </div>
     </StoreProvider>

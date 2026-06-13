@@ -5,7 +5,7 @@
  * payment method, order summary. Guest checkout — no login required;
  * an account is auto-created server-side (spec §6).
  */
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { useStore } from "@/lib/store";
 import { useAuth } from "@/lib/auth";
 import { api, ApiError } from "@/lib/api";
+import { analytics } from "@/lib/analytics";
 import { bdt } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -56,6 +57,17 @@ export default function CheckoutPage() {
       .catch(() => undefined); // COD-only fallback already set
   }, []);
 
+  // Marketing analytics — InitiateCheckout once when the cart is ready (spec §13).
+  const checkoutTracked = useRef(false);
+  useEffect(() => {
+    if (!ready || checkoutTracked.current || cart.length === 0) return;
+    checkoutTracked.current = true;
+    analytics.initiateCheckout(
+      cartSubtotal,
+      cart.map((c) => ({ id: c.productId, name: c.name, price: c.unitPrice, quantity: c.quantity }))
+    );
+  }, [ready, cart, cartSubtotal]);
+
   // Prefill from the logged-in user's profile + default address.
   useEffect(() => {
     if (!user) return;
@@ -95,6 +107,21 @@ export default function CheckoutPage() {
           items: cart.map((c) => ({ productId: c.productId, variantId: c.variantId, quantity: c.quantity })),
         },
       });
+      // Stash the purchase payload for the success page's Purchase event
+      // (works for guests too, and survives the cart being cleared).
+      try {
+        sessionStorage.setItem(
+          `nextmart.purchase.${res.orderNumber}`,
+          JSON.stringify({
+            orderNumber: res.orderNumber,
+            value: cartSubtotal + shipping,
+            items: cart.map((c) => ({ id: c.productId, name: c.name, price: c.unitPrice, quantity: c.quantity })),
+          })
+        );
+      } catch {
+        /* sessionStorage unavailable — Purchase event is best-effort */
+      }
+
       // The order exists now — safe to clear the cart regardless of payment.
       clearCart();
 

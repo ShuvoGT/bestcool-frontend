@@ -1,10 +1,11 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { CheckCircle2, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { analytics, type PurchasePayload } from "@/lib/analytics";
 
 function SuccessContent() {
   const params = useSearchParams();
@@ -12,6 +13,25 @@ function SuccessContent() {
   const isNewAccount = params.get("new") === "1";
   const paid = params.get("paid") === "1";
   const pending = params.get("pending") === "1";
+
+  // Marketing analytics — Purchase, fired exactly once per order (spec §13).
+  // Guarded by a localStorage flag so a page refresh never double-counts.
+  useEffect(() => {
+    if (!orderNumber) return;
+    const firedKey = `nextmart.purchased.${orderNumber}`;
+    const stashKey = `nextmart.purchase.${orderNumber}`;
+    try {
+      if (localStorage.getItem(firedKey)) return;
+      const raw = sessionStorage.getItem(stashKey);
+      if (!raw) return;
+      const payload = JSON.parse(raw) as PurchasePayload;
+      analytics.purchase(payload);
+      localStorage.setItem(firedKey, "1");
+      sessionStorage.removeItem(stashKey);
+    } catch {
+      /* storage unavailable — skip */
+    }
+  }, [orderNumber]);
 
   return (
     <div className="mx-auto flex max-w-xl flex-col items-center gap-5 px-4 py-20 text-center">

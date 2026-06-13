@@ -13,6 +13,7 @@ import { bdt } from "@/lib/format";
 import { GlassCard, PageHeader, Spinner } from "@/components/admin/ui";
 import { TextField, TextareaField, ImageField, SwitchField, NumberField } from "@/components/admin/fields";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -85,6 +86,11 @@ export default function AdminSettingsPage() {
   const footerColumns = get<FooterColumn[]>("footer.columns", []);
   const socials = get<SocialLink[]>("social.links", []);
   const smsEvents = get<Record<string, boolean>>("sms.events", {});
+
+  // Custom code snippets injected into the storefront (head / body end).
+  type Snippet = { name: string; placement: "head" | "bodyEnd"; code: string; enabled: boolean };
+  const snippets = get<Snippet[]>("code.snippets", []);
+  const setSnippets = (next: Snippet[]) => set("code.snippets", next);
 
   // Payment gateway credentials (managed here, never exposed to the storefront).
   type Gw = Record<string, string | boolean>;
@@ -258,6 +264,53 @@ export default function AdminSettingsPage() {
             <p className="text-xs text-zinc-500">
               Tracking scripts load on the storefront only when an ID is present — no redeploy needed. They never load on /admin.
             </p>
+          </GlassCard>
+
+          {/* Custom code snippets */}
+          <GlassCard className="space-y-4 p-5">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-400">Code Snippets</h2>
+            <p className="text-xs text-zinc-500">
+              Inject custom HTML/JS into the storefront — verification meta tags, extra analytics, A/B tools, custom CSS.
+              Choose where each snippet loads. Applied instantly (no redeploy); never runs on /admin.
+            </p>
+            {snippets.map((s, i) => (
+              <div key={i} className="space-y-3 rounded-lg border border-white/8 bg-white/3 p-4">
+                <div className="flex flex-wrap items-end gap-3">
+                  <div className="flex-1">
+                    <TextField label={`Snippet ${i + 1} name`} value={s.name ?? ""} onChange={(v) => setSnippets(snippets.map((x, n) => (n === i ? { ...x, name: v } : x)))} placeholder="e.g. Google site verification" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-zinc-300">Placement</Label>
+                    <div className="flex gap-1.5">
+                      {(["head", "bodyEnd"] as const).map((pl) => (
+                        <button
+                          key={pl}
+                          type="button"
+                          onClick={() => setSnippets(snippets.map((x, n) => (n === i ? { ...x, placement: pl } : x)))}
+                          className={`rounded-md border px-3 py-2 text-xs font-medium ${
+                            (s.placement ?? "head") === pl ? "border-cyan-400/40 bg-cyan-500/15 text-cyan-300" : "border-white/10 bg-white/5 text-zinc-400"
+                          }`}
+                        >
+                          {pl === "head" ? "Head" : "Body end"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <Button size="icon" variant="ghost" className="text-zinc-400 hover:text-red-400" onClick={() => setSnippets(snippets.filter((_, n) => n !== i))}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+                <TextareaField label="Code" value={s.code ?? ""} onChange={(v) => setSnippets(snippets.map((x, n) => (n === i ? { ...x, code: v } : x)))} rows={4} hint="Pasted verbatim. <script>, <meta>, <style> all supported." />
+                <SwitchField label="Enabled" checked={s.enabled !== false} onChange={(v) => setSnippets(snippets.map((x, n) => (n === i ? { ...x, enabled: v } : x)))} />
+              </div>
+            ))}
+            <Button
+              variant="outline" size="sm"
+              className="border-dashed border-white/15 bg-transparent text-zinc-300 hover:bg-white/5"
+              onClick={() => setSnippets([...snippets, { name: "", placement: "head", code: "", enabled: true }])}
+            >
+              <Plus className="mr-1 h-3.5 w-3.5" /> Add code snippet
+            </Button>
           </GlassCard>
         </TabsContent>
 

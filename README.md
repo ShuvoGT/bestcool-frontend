@@ -8,13 +8,27 @@ A production-quality electronics e-commerce web application for the Bangladesh m
 - **Couriers**: Steadfast, Pathao, RedX
 - **Notifications**: Email (Nodemailer/SMTP) + SMS (provider-agnostic gateway)
 
-> **Build status**: Phases 1–7 complete — scaffolding/schema/seed, backend REST API,
-> admin panel at `/admin`, the full CMS-driven storefront, the complete commerce flow
-> (cart, checkout, COD, guest→auto-account, emails, SMS), **online payments**
-> (bKash/Nagad/SSLCommerz with server-side verification + IPN), and **courier
-> integration** (Steadfast/Pathao/RedX — send-to-courier, tracking, status sync,
-> webhooks). Both payments and couriers are configured from the admin panel.
-> Phase 8 (Facebook Pixel + GA4 + final polish) is in progress.
+> **Build status**: All 8 phases complete — scaffolding/schema/seed, backend REST API,
+> admin panel at `/admin`, the full CMS-driven storefront (redesigned, Akij-CE style),
+> the complete commerce flow (cart, checkout, COD, guest→auto-account, emails, SMS),
+> **online payments** (bKash/Nagad/SSLCommerz, server-side verified + IPN), **courier
+> integration** (Steadfast/Pathao/RedX), dynamic category-wise product sections, and
+> **marketing analytics** (Facebook Pixel + GA4 events) plus a custom **Code Snippets**
+> injector. Payments, couriers, analytics and code snippets are all admin-configured.
+
+## Marketing analytics & code snippets (Phase 8)
+
+Set the **Facebook Pixel ID** and **GA4 Measurement ID** in Admin → Settings →
+Integrations. The storefront loads each tracking script only when its ID is present
+(no redeploy needed) and never on `/admin`. Standard e-commerce events fire on both:
+PageView, ViewContent (product page), AddToCart, AddToWishlist, InitiateCheckout, and
+Purchase (on the order-success page, with order value/currency/id/items, fired once —
+guarded against refresh double-counting).
+
+**Code Snippets** (Admin → Settings → Integrations → Code Snippets): paste custom
+HTML/JS/CSS — site-verification meta tags, extra analytics, A/B tools, chat widgets —
+and choose where each loads (`<head>` or end of `<body>`). Applied instantly, storefront
+only. Snippets are injected verbatim, so only trusted admins should use this.
 
 **Email & SMS in development**: with no SMTP/SMS credentials in `backend/.env`, every
 email and SMS is printed to the backend console instead of being sent — so you can

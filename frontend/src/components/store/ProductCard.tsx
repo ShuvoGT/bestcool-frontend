@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Heart, ShoppingCart, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { useStore } from "@/lib/store";
+import { analytics } from "@/lib/analytics";
 import { bdt } from "@/lib/format";
 import { RatingStars } from "@/components/store/RatingStars";
 import type { ProductCardData } from "@/lib/server-api";
@@ -51,6 +52,7 @@ export function ProductCard({ product }: { product: ProductCardData }) {
       {/* Wishlist heart */}
       <button
         onClick={() => {
+          if (!wished) analytics.addToWishlist({ id: product.id, name: product.name, price: product.price, category: product.category?.name });
           toggleWishlist({ productId: product.id, slug: product.slug });
           toast.success(wished ? "Removed from wishlist" : "Added to wishlist");
         }}

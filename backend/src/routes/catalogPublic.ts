@@ -42,7 +42,9 @@ pagesRouter.get(
 
 // Only these settings are exposed to the storefront. Everything else
 // (SMS toggles, etc.) stays admin-only.
-const PUBLIC_SETTING_PREFIXES = ["site.", "contact.", "social.", "whatsapp.", "chat.", "analytics.", "nav.", "footer."];
+// Storefront-readable settings only. Payment/courier secrets are excluded;
+// code snippets + analytics are inherently client-side, so they're public.
+const PUBLIC_SETTING_PREFIXES = ["site.", "contact.", "social.", "whatsapp.", "chat.", "analytics.", "code.", "nav.", "footer."];
 
 export const settingsRouter = Router();
 settingsRouter.get(
