@@ -31,6 +31,10 @@ import { adminCouriersRouter } from "./routes/admin/couriers";
 
 const app = express();
 
+// Behind nginx/Hostinger in production: trust the first proxy hop so client
+// IPs (rate limiting) and the HTTPS protocol are detected correctly.
+if (env.isProd) app.set("trust proxy", 1);
+
 app.use(cors({ origin: env.frontendUrl, credentials: true }));
 app.use(express.json({ limit: "2mb" }));
 // Payment gateways POST callbacks/IPN as application/x-www-form-urlencoded.

@@ -9,6 +9,12 @@ export const env = {
   jwtSecret: process.env.JWT_SECRET || "",
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || "7d",
 
+  // Auth-cookie SameSite. When the storefront (e.g. *.vercel.app) and the API
+  // (e.g. a Hostinger domain) are on DIFFERENT sites, the cookie must be
+  // "none" + Secure or the browser won't send it. Defaults: cross-site in
+  // production, "lax" in local dev. Override with COOKIE_SAMESITE=lax|none.
+  cookieSameSite: ((process.env.COOKIE_SAMESITE || (process.env.NODE_ENV === "production" ? "none" : "lax")).toLowerCase()) as "lax" | "none" | "strict",
+
   smtp: {
     host: process.env.SMTP_HOST || "",
     port: Number(process.env.SMTP_PORT) || 587,

@@ -300,25 +300,20 @@ price resolution (client prices are never trusted), role-gated admin API.
 
 ---
 
-## Deploying (GitHub + Vercel)
+## Deploying
 
-This is a **two-app architecture** — Vercel hosts the Next.js frontend, while
-the Express API and PostgreSQL need their own homes:
+Both apps + PostgreSQL run on a single **Hostinger VPS** behind nginx on one
+domain (`/` → storefront, `/api` → API). Because they share a domain, login
+cookies are first-party and just work. **Full step-by-step guide: [DEPLOY.md](DEPLOY.md).**
 
-| Piece | Where | Notes |
-|---|---|---|
-| `/frontend` | **Vercel** | Import the GitHub repo, set **Root Directory = `frontend`**. Set `NEXT_PUBLIC_API_URL` + `NEXT_PUBLIC_SITE_URL` env vars. |
-| `/backend` | **Render / Railway** (free tier) | Root directory `backend`, build `npm install && npx prisma migrate deploy && npm run build`, start `npm start`. Copy every var from `backend/.env.example`. |
-| PostgreSQL | **Neon** (free) or Railway Postgres | Put the connection string in the backend's `DATABASE_URL`, run `npx prisma migrate deploy` + `npm run seed` once. |
-| Uploads | Local disk works on a persistent server; on ephemeral hosts swap `LocalStorageProvider` for S3/Cloudflare R2 (one line in `backend/src/storage/index.ts`) | Planned as part of go-live hardening. |
+`ecosystem.config.cjs` (repo root) runs both Node apps under PM2. Production
+hardening already in place: cross-site-capable auth cookie (`COOKIE_SAMESITE`),
+`trust proxy` behind nginx, and `next/image` allowing the production upload host.
 
-**Cookie caveat for production**: the JWT cookie is `SameSite=Lax`, which only
-works when the frontend and API share a site (e.g. `nextmart.com.bd` +
-`api.nextmart.com.bd`). With a `*.vercel.app` frontend talking to a
-`*.onrender.com` API you'd need `SameSite=None; Secure` — prefer a custom
-domain with an `api.` subdomain when going live.
-
-To publish: create a GitHub repo, then
-`git remote add origin <repo-url> && git push -u origin main`.
-(`.env` files, `node_modules`, and the portable `/tools` are already git-ignored —
-only `.env.example` templates are committed.)
+### Push to GitHub
+```bash
+git remote add origin https://github.com/<you>/<repo>.git
+git push -u origin main
+```
+(`.env` files, `node_modules`, and the portable `/tools` are git-ignored — only
+`.env.example` templates are committed.)

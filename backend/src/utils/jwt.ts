@@ -21,16 +21,20 @@ const COOKIE_NAME = "token";
 // is the real source of truth for session lifetime.
 const COOKIE_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
+// SameSite=None requires Secure (HTTPS). Force secure whenever the cookie is
+// cross-site, and in production regardless.
+const COOKIE_SECURE = env.isProd || env.cookieSameSite === "none";
+
 export function setAuthCookie(res: Response, token: string) {
   res.cookie(COOKIE_NAME, token, {
     httpOnly: true,
-    secure: env.isProd,
-    sameSite: "lax",
+    secure: COOKIE_SECURE,
+    sameSite: env.cookieSameSite,
     maxAge: COOKIE_MAX_AGE_MS,
     path: "/",
   });
 }
 
 export function clearAuthCookie(res: Response) {
-  res.clearCookie(COOKIE_NAME, { httpOnly: true, secure: env.isProd, sameSite: "lax", path: "/" });
+  res.clearCookie(COOKIE_NAME, { httpOnly: true, secure: COOKIE_SECURE, sameSite: env.cookieSameSite, path: "/" });
 }
