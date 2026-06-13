@@ -39,24 +39,24 @@ export default function AccountOverview() {
 
       <div className="flex items-center justify-between">
         <h2 className="font-bold text-zinc-900">Recent orders</h2>
-        <Link href="/account/orders" className="text-sm font-medium text-blue-600 hover:underline">View all</Link>
+        <Link href="/account/orders" className="text-sm font-medium text-brand hover:underline">View all</Link>
       </div>
       <div className="mt-3 space-y-3">
         {loading ? (
           [1, 2].map((n) => <Skeleton key={n} className="h-16 w-full rounded-xl" />)
         ) : !data?.length ? (
           <p className="rounded-xl border border-zinc-200 p-6 text-center text-sm text-zinc-500">
-            No orders yet — <Link href="/shop" className="text-blue-600 hover:underline">start shopping</Link>
+            No orders yet — <Link href="/shop" className="text-brand hover:underline">start shopping</Link>
           </p>
         ) : (
           data.slice(0, 4).map((o) => (
             <Link
               key={o.id}
               href={`/account/orders/${o.orderNumber}`}
-              className="flex items-center justify-between gap-3 rounded-xl border border-zinc-200 p-4 transition-colors hover:border-blue-300"
+              className="flex items-center justify-between gap-3 rounded-xl border border-zinc-200 p-4 transition-colors hover:border-brand/40"
             >
               <div>
-                <div className="font-semibold text-blue-600">{o.orderNumber}</div>
+                <div className="font-semibold text-brand">{o.orderNumber}</div>
                 <div className="text-xs text-zinc-400">{formatDate(o.createdAt)}</div>
               </div>
               <div className="flex items-center gap-3">

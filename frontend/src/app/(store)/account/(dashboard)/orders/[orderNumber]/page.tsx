@@ -52,7 +52,7 @@ export default function OrderDetailPage() {
 
   return (
     <div>
-      <Link href="/account/orders" className="mb-4 inline-flex items-center gap-1.5 text-sm text-zinc-500 hover:text-blue-600">
+      <Link href="/account/orders" className="mb-4 inline-flex items-center gap-1.5 text-sm text-zinc-500 hover:text-brand">
         <ArrowLeft className="h-4 w-4" /> All orders
       </Link>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
@@ -67,11 +67,11 @@ export default function OrderDetailPage() {
       </div>
 
       {canPay && (
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-blue-200 bg-blue-50 p-4">
-          <p className="text-sm text-blue-900">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-brand/30 bg-brand-soft p-4">
+          <p className="text-sm text-ink">
             This order is awaiting payment via <strong>{order.paymentMethod}</strong>.
           </p>
-          <Button onClick={payNow} disabled={paying} className="gap-1.5 bg-blue-600 text-white hover:bg-blue-700">
+          <Button onClick={payNow} disabled={paying} className="gap-1.5 bg-brand text-white hover:bg-brand-dark">
             {paying ? <Loader2 className="h-4 w-4 animate-spin" /> : <CreditCard className="h-4 w-4" />} Pay now — {bdt(order.total)}
           </Button>
         </div>
@@ -113,7 +113,7 @@ export default function OrderDetailPage() {
             <ol className="relative ml-2 space-y-5 border-l-2 border-zinc-100 pl-5">
               {order.timeline.map((t, i) => (
                 <li key={i} className="relative">
-                  <span className="absolute -left-[27px] top-1 h-3 w-3 rounded-full border-2 border-white bg-blue-600 ring-2 ring-blue-100" />
+                  <span className="absolute -left-[27px] top-1 h-3 w-3 rounded-full border-2 border-white bg-brand ring-2 ring-brand/20" />
                   <div className="text-sm font-semibold text-zinc-900">{t.status.replace(/_/g, " ")}</div>
                   {t.note && <div className="text-xs text-zinc-500">{t.note}</div>}
                   <div className="text-xs text-zinc-400">{formatDateTime(t.at)}</div>

@@ -38,7 +38,7 @@ export function CartSheet({ open, onOpenChange }: { open: boolean; onOpenChange:
                     </Link>
                   )}
                   <div className="min-w-0 flex-1">
-                    <Link href={`/product/${item.slug}`} onClick={() => onOpenChange(false)} className="line-clamp-1 text-sm font-medium text-zinc-900 hover:text-blue-600">
+                    <Link href={`/product/${item.slug}`} onClick={() => onOpenChange(false)} className="line-clamp-1 text-sm font-medium text-zinc-900 hover:text-brand">
                       {item.name}
                     </Link>
                     {item.variantName && <p className="text-xs text-zinc-500">{item.variantName}</p>}
@@ -80,7 +80,7 @@ export function CartSheet({ open, onOpenChange }: { open: boolean; onOpenChange:
               </div>
               <p className="mb-3 text-xs text-zinc-400">Shipping calculated at checkout.</p>
               <Link href="/cart" onClick={() => onOpenChange(false)}>
-                <Button className="w-full bg-blue-600 text-white hover:bg-blue-700">View cart & checkout</Button>
+                <Button className="w-full bg-brand text-white hover:bg-brand-dark">View cart & checkout</Button>
               </Link>
             </div>
           </>

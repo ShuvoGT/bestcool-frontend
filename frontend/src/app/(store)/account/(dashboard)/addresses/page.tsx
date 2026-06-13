@@ -61,7 +61,7 @@ export default function AddressesPage() {
     <div>
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-extrabold tracking-tight text-zinc-900">Address Book</h1>
-        <Button onClick={() => setEditing(empty)} className="gap-1.5 bg-blue-600 text-white hover:bg-blue-700">
+        <Button onClick={() => setEditing(empty)} className="gap-1.5 bg-brand text-white hover:bg-brand-dark">
           <Plus className="h-4 w-4" /> Add address
         </Button>
       </div>
@@ -77,12 +77,12 @@ export default function AddressesPage() {
           {data.map((a) => (
             <div key={a.id} className="relative rounded-xl border border-zinc-200 p-4">
               {a.isDefault && (
-                <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700">
-                  <Star className="h-3 w-3 fill-blue-700" /> DEFAULT
+                <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-brand-soft px-2 py-0.5 text-[10px] font-bold text-brand-dark">
+                  <Star className="h-3 w-3 fill-brand" /> DEFAULT
                 </span>
               )}
               <div className="mb-1 flex items-center gap-2 text-sm font-bold text-zinc-900">
-                <MapPin className="h-4 w-4 text-blue-600" /> {a.label || "Address"}
+                <MapPin className="h-4 w-4 text-brand" /> {a.label || "Address"}
               </div>
               <p className="text-sm text-zinc-700">{a.fullName} · {a.phone}</p>
               <p className="text-sm text-zinc-500">{a.address}, {a.district}</p>
@@ -138,7 +138,7 @@ export default function AddressesPage() {
                 />
                 Set as default address
               </label>
-              <Button type="submit" disabled={saving} className="w-full bg-blue-600 text-white hover:bg-blue-700">
+              <Button type="submit" disabled={saving} className="w-full bg-brand text-white hover:bg-brand-dark">
                 {saving && <Loader2 className="mr-1 h-4 w-4 animate-spin" />} Save address
               </Button>
             </form>

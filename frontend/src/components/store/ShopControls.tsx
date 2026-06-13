@@ -46,7 +46,7 @@ export function ShopControls({ categories, current, total }: { categories: Categ
           onClick={() => update({ category: "" })}
           className={cn(
             "rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors",
-            !current.category ? "border-blue-600 bg-blue-600 text-white" : "border-zinc-200 text-zinc-600 hover:border-zinc-300"
+            !current.category ? "border-brand bg-brand text-white" : "border-zinc-200 text-zinc-600 hover:border-zinc-300"
           )}
         >
           All
@@ -57,7 +57,7 @@ export function ShopControls({ categories, current, total }: { categories: Categ
             onClick={() => update({ category: c.slug })}
             className={cn(
               "rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors",
-              current.category === c.slug ? "border-blue-600 bg-blue-600 text-white" : "border-zinc-200 text-zinc-600 hover:border-zinc-300"
+              current.category === c.slug ? "border-brand bg-brand text-white" : "border-zinc-200 text-zinc-600 hover:border-zinc-300"
             )}
           >
             {c.name} <span className="opacity-60">({c.productCount})</span>
@@ -95,7 +95,7 @@ export function ShopControls({ categories, current, total }: { categories: Categ
             <label className="mb-1 block text-xs font-medium text-zinc-500">Max price (৳)</label>
             <Input type="number" min={0} value={maxPrice} onChange={(e) => setMaxPrice(e.target.value)} className="w-32 bg-white" />
           </div>
-          <Button type="submit" size="sm" className="bg-blue-600 text-white hover:bg-blue-700">Apply</Button>
+          <Button type="submit" size="sm" className="bg-brand text-white hover:bg-brand-dark">Apply</Button>
         </form>
       )}
 
@@ -108,7 +108,7 @@ export function ShopControls({ categories, current, total }: { categories: Categ
           </span>
         )}
         {hasFilters && (
-          <button onClick={() => router.push("/shop")} className="text-xs font-medium text-blue-600 hover:underline">
+          <button onClick={() => router.push("/shop")} className="text-xs font-medium text-brand hover:underline">
             Clear all filters
           </button>
         )}
@@ -136,7 +136,7 @@ export function ShopPagination({ page, pages }: { page: number; pages: number })
           onClick={() => go(n)}
           className={cn(
             "h-9 w-9 rounded-lg border text-sm font-medium transition-colors",
-            n === page ? "border-blue-600 bg-blue-600 text-white" : "border-zinc-200 text-zinc-600 hover:border-zinc-300"
+            n === page ? "border-brand bg-brand text-white" : "border-zinc-200 text-zinc-600 hover:border-zinc-300"
           )}
         >
           {n}

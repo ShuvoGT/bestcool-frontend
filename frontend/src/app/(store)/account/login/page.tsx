@@ -69,11 +69,11 @@ function LoginContent() {
               <Label>Password</Label>
               <Input type="password" required value={loginForm.password} onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })} />
             </div>
-            <Button type="submit" disabled={busy} className="w-full bg-blue-600 text-white hover:bg-blue-700">
+            <Button type="submit" disabled={busy} className="w-full bg-brand text-white hover:bg-brand-dark">
               {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Sign in"}
             </Button>
             <p className="text-center text-sm">
-              <Link href="/forgot-password" className="text-blue-600 hover:underline">Forgot password?</Link>
+              <Link href="/forgot-password" className="text-brand hover:underline">Forgot password?</Link>
             </p>
             <p className="text-center text-xs text-zinc-400">
               Ordered as a guest? Your login details were emailed to you with your first order.
@@ -100,7 +100,7 @@ function LoginContent() {
               <Input type="password" required minLength={8} value={regForm.password} onChange={(e) => setRegForm({ ...regForm, password: e.target.value })} />
               <p className="text-xs text-zinc-400">At least 8 characters.</p>
             </div>
-            <Button type="submit" disabled={busy} className="w-full bg-blue-600 text-white hover:bg-blue-700">
+            <Button type="submit" disabled={busy} className="w-full bg-brand text-white hover:bg-brand-dark">
               {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Create account"}
             </Button>
           </form>

@@ -97,7 +97,7 @@ export function ProductDetailClient({ product }: { product: ProductDetailData })
                   onClick={() => setImageIndex(i)}
                   className={cn(
                     "relative h-18 w-18 shrink-0 overflow-hidden rounded-lg border-2 transition-colors",
-                    i === imageIndex ? "border-blue-600" : "border-transparent hover:border-zinc-300"
+                    i === imageIndex ? "border-brand" : "border-transparent hover:border-zinc-300"
                   )}
                   aria-label={`View image ${i + 1}`}
                 >
@@ -111,7 +111,7 @@ export function ProductDetailClient({ product }: { product: ProductDetailData })
         {/* Info panel */}
         <div className="flex flex-col gap-4">
           {product.category && (
-            <span className="text-xs font-semibold uppercase tracking-widest text-blue-600">{product.category.name}</span>
+            <span className="text-xs font-semibold uppercase tracking-widest text-brand">{product.category.name}</span>
           )}
           <h1 className="text-2xl font-extrabold leading-tight tracking-tight text-zinc-900 sm:text-3xl">{product.name}</h1>
           <div className="flex items-center gap-3">
@@ -158,7 +158,7 @@ export function ProductDetailClient({ product }: { product: ProductDetailData })
                     className={cn(
                       "rounded-lg border px-3.5 py-2 text-sm font-medium transition-all",
                       v.id === variantId
-                        ? "border-blue-600 bg-blue-50 text-blue-700 ring-1 ring-blue-600"
+                        ? "border-brand bg-brand-soft text-brand-dark ring-1 ring-brand"
                         : "border-zinc-200 text-zinc-700 hover:border-zinc-400",
                       v.stock <= 0 && "cursor-not-allowed opacity-40 line-through"
                     )}
@@ -209,7 +209,7 @@ export function ProductDetailClient({ product }: { product: ProductDetailData })
               size="lg"
               disabled={out}
               onClick={() => handleAdd(false)}
-              className="h-12 flex-1 gap-2 bg-blue-600 text-base font-semibold text-white shadow-lg shadow-blue-200 hover:bg-blue-700 sm:flex-none sm:px-8"
+              className="h-12 flex-1 gap-2 bg-brand text-base font-semibold text-white shadow-lg shadow-orange-200 hover:bg-brand-dark sm:flex-none sm:px-8"
             >
               <ShoppingCart className="h-5 w-5" /> Add to Cart
             </Button>
@@ -244,7 +244,7 @@ export function ProductDetailClient({ product }: { product: ProductDetailData })
               { icon: Truck, label: "Fast Delivery", sub: "All 64 districts" },
             ].map(({ icon: Icon, label, sub }) => (
               <div key={label} className="flex flex-col items-center gap-1 text-center">
-                <Icon className="h-5 w-5 text-blue-600" />
+                <Icon className="h-5 w-5 text-brand" />
                 <span className="text-xs font-semibold text-zinc-900">{label}</span>
                 <span className="text-[10px] text-zinc-500">{sub}</span>
               </div>
@@ -259,7 +259,7 @@ export function ProductDetailClient({ product }: { product: ProductDetailData })
           <div className="truncate text-xs text-zinc-500">{product.name}</div>
           <div className="text-lg font-extrabold text-zinc-900">{bdt(unitPrice * quantity)}</div>
         </div>
-        <Button disabled={out} onClick={() => handleAdd(false)} className="gap-1.5 bg-blue-600 font-semibold text-white hover:bg-blue-700">
+        <Button disabled={out} onClick={() => handleAdd(false)} className="gap-1.5 bg-brand font-semibold text-white hover:bg-brand-dark">
           <ShoppingCart className="h-4 w-4" /> Add to Cart
         </Button>
       </div>

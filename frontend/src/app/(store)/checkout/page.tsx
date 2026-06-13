@@ -128,7 +128,7 @@ export default function CheckoutPage() {
       <div className="mx-auto flex max-w-xl flex-col items-center gap-4 px-4 py-24 text-center">
         <h1 className="text-2xl font-extrabold text-zinc-900">Nothing to check out</h1>
         <p className="text-sm text-zinc-500">Your cart is empty.</p>
-        <Link href="/shop"><Button className="bg-blue-600 text-white hover:bg-blue-700">Browse products</Button></Link>
+        <Link href="/shop"><Button className="bg-brand text-white hover:bg-brand-dark">Browse products</Button></Link>
       </div>
     );
   }
@@ -181,11 +181,11 @@ export default function CheckoutPage() {
                   onClick={() => setZoneId(z.id)}
                   className={cn(
                     "flex items-center justify-between rounded-xl border-2 px-4 py-3.5 text-left transition-all",
-                    zoneId === z.id ? "border-blue-600 bg-blue-50" : "border-zinc-200 hover:border-zinc-300"
+                    zoneId === z.id ? "border-brand bg-brand-soft" : "border-zinc-200 hover:border-zinc-300"
                   )}
                 >
                   <span className="font-semibold text-zinc-900">{z.name}</span>
-                  <span className="font-bold text-blue-700">{bdt(z.charge)}</span>
+                  <span className="font-bold text-brand-dark">{bdt(z.charge)}</span>
                 </button>
               ))}
             </div>
@@ -205,10 +205,10 @@ export default function CheckoutPage() {
                     onClick={() => setPayment(m.method)}
                     className={cn(
                       "flex items-center gap-3 rounded-xl border-2 px-4 py-3.5 text-left transition-all",
-                      payment === m.method ? "border-blue-600 bg-blue-50" : "border-zinc-200 hover:border-zinc-300"
+                      payment === m.method ? "border-brand bg-brand-soft" : "border-zinc-200 hover:border-zinc-300"
                     )}
                   >
-                    <Icon className="h-5 w-5 shrink-0 text-blue-600" />
+                    <Icon className="h-5 w-5 shrink-0 text-brand" />
                     <span>
                       <span className="block font-semibold text-zinc-900">{m.label}</span>
                       <span className="block text-xs text-zinc-500">{meta.sub}</span>
@@ -249,7 +249,7 @@ export default function CheckoutPage() {
           <Button
             type="submit"
             disabled={placing || !cart.length}
-            className="mt-5 h-12 w-full gap-2 bg-blue-600 text-base font-semibold text-white shadow-lg shadow-blue-200 hover:bg-blue-700"
+            className="mt-5 h-12 w-full gap-2 bg-brand text-base font-semibold text-white shadow-lg shadow-orange-200 hover:bg-brand-dark"
           >
             {placing ? <Loader2 className="h-5 w-5 animate-spin" /> : <Lock className="h-4 w-4" />}
             Place Order — {bdt(cartSubtotal + shipping)}

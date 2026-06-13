@@ -52,7 +52,7 @@ export function ProductTabs({ product, reviews: initialReviews }: { product: Pro
           <TabsTrigger
             key={t.value}
             value={t.value}
-            className="rounded-none border-b-2 border-transparent px-4 pb-3 font-semibold text-zinc-500 data-[state=active]:border-blue-600 data-[state=active]:bg-transparent data-[state=active]:text-blue-600 data-[state=active]:shadow-none"
+            className="rounded-none border-b-2 border-transparent px-4 pb-3 font-semibold text-zinc-500 data-[state=active]:border-brand data-[state=active]:bg-transparent data-[state=active]:text-brand data-[state=active]:shadow-none"
           >
             {t.label}
           </TabsTrigger>
@@ -123,7 +123,7 @@ export function ProductTabs({ product, reviews: initialReviews }: { product: Pro
               rows={4}
               className="bg-white"
             />
-            <Button type="submit" disabled={submitting} className="mt-3 bg-blue-600 text-white hover:bg-blue-700">
+            <Button type="submit" disabled={submitting} className="mt-3 bg-brand text-white hover:bg-brand-dark">
               Submit review
             </Button>
             <p className="mt-2 text-xs text-zinc-400">You need an account to review — one is created automatically when you order.</p>

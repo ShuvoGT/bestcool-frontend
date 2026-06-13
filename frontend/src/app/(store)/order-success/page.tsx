@@ -32,9 +32,9 @@ function SuccessContent() {
         </div>
       )}
       {isNewAccount && (
-        <div className="flex items-start gap-3 rounded-xl border border-blue-200 bg-blue-50 p-4 text-left">
-          <Mail className="mt-0.5 h-5 w-5 shrink-0 text-blue-600" />
-          <p className="text-sm text-blue-900">
+        <div className="flex items-start gap-3 rounded-xl border border-brand/30 bg-brand-soft p-4 text-left">
+          <Mail className="mt-0.5 h-5 w-5 shrink-0 text-brand" />
+          <p className="text-sm text-ink">
             <strong>We created an account for you.</strong> Check your email for your username and a
             temporary password — you&apos;ll set a new password on first login, then you can track this
             order anytime.
@@ -43,7 +43,7 @@ function SuccessContent() {
       )}
       <div className="flex gap-3">
         <Link href="/account/orders"><Button variant="outline">Track my order</Button></Link>
-        <Link href="/shop"><Button className="bg-blue-600 text-white hover:bg-blue-700">Continue shopping</Button></Link>
+        <Link href="/shop"><Button className="bg-brand text-white hover:bg-brand-dark">Continue shopping</Button></Link>
       </div>
     </div>
   );

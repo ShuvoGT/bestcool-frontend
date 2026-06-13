@@ -49,7 +49,7 @@ export default function WishlistPage() {
         <div className="flex flex-col items-center gap-4 py-20 text-center">
           <Heart className="h-12 w-12 text-zinc-200" />
           <p className="text-zinc-500">Your wishlist is empty. Tap the ♥ on any product to save it here.</p>
-          <Link href="/shop"><Button className="bg-blue-600 text-white hover:bg-blue-700">Browse products</Button></Link>
+          <Link href="/shop"><Button className="bg-brand text-white hover:bg-brand-dark">Browse products</Button></Link>
         </div>
       ) : (
         <ul className="space-y-3">
@@ -61,7 +61,7 @@ export default function WishlistPage() {
                   {p.image && <Image src={p.image} alt={p.name} fill unoptimized className="object-cover" />}
                 </Link>
                 <div className="min-w-0 flex-1">
-                  <Link href={`/product/${p.slug}`} className="line-clamp-1 font-semibold text-zinc-900 hover:text-blue-600">
+                  <Link href={`/product/${p.slug}`} className="line-clamp-1 font-semibold text-zinc-900 hover:text-brand">
                     {p.name}
                   </Link>
                   <div className="mt-1 flex flex-wrap items-center gap-2">
@@ -88,7 +88,7 @@ export default function WishlistPage() {
                       });
                       toast.success(`${p.name} added to cart`);
                     }}
-                    className="gap-1.5 bg-blue-600 text-white hover:bg-blue-700"
+                    className="gap-1.5 bg-brand text-white hover:bg-brand-dark"
                   >
                     <ShoppingCart className="h-3.5 w-3.5" /> Add to Cart
                   </Button>

@@ -46,7 +46,7 @@ export default function ProfilePage() {
           <Input value={user?.email ?? ""} disabled className="bg-zinc-50 text-zinc-500" />
           <p className="text-xs text-zinc-400">Email is your login and cannot be changed.</p>
         </div>
-        <Button type="submit" disabled={saving} className="gap-1.5 bg-blue-600 text-white hover:bg-blue-700">
+        <Button type="submit" disabled={saving} className="gap-1.5 bg-brand text-white hover:bg-brand-dark">
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Save changes
         </Button>
       </form>

@@ -24,7 +24,7 @@ export default function MyOrdersPage() {
       ) : !data?.length ? (
         <p className="rounded-xl border border-zinc-200 p-10 text-center text-sm text-zinc-500">
           You haven&apos;t placed any orders yet.{" "}
-          <Link href="/shop" className="text-blue-600 hover:underline">Start shopping</Link>
+          <Link href="/shop" className="text-brand hover:underline">Start shopping</Link>
         </p>
       ) : (
         <div className="space-y-3">
@@ -32,10 +32,10 @@ export default function MyOrdersPage() {
             <Link
               key={o.id}
               href={`/account/orders/${o.orderNumber}`}
-              className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-zinc-200 p-4 transition-colors hover:border-blue-300 sm:p-5"
+              className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-zinc-200 p-4 transition-colors hover:border-brand/40 sm:p-5"
             >
               <div>
-                <div className="font-bold text-blue-600">{o.orderNumber}</div>
+                <div className="font-bold text-brand">{o.orderNumber}</div>
                 <div className="mt-0.5 text-xs text-zinc-400">
                   {formatDateTime(o.createdAt)} · {o.items.reduce((s, i) => s + i.quantity, 0)} item(s) · {o.paymentMethod}
                 </div>

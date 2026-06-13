@@ -34,7 +34,7 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
   if (loading || !user) {
     return (
       <div className="flex min-h-96 items-center justify-center">
-        <Loader2 className="h-7 w-7 animate-spin text-blue-600" />
+        <Loader2 className="h-7 w-7 animate-spin text-brand" />
       </div>
     );
   }
@@ -55,7 +55,7 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
                 href={href}
                 className={cn(
                   "flex shrink-0 items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                  active ? "bg-blue-50 text-blue-700" : "text-zinc-600 hover:bg-zinc-50"
+                  active ? "bg-brand-soft text-brand-dark" : "text-zinc-600 hover:bg-zinc-50"
                 )}
               >
                 <Icon className="h-4 w-4" /> {label}

@@ -27,7 +27,7 @@ function FailedContent() {
       </p>
       <div className="flex gap-3">
         <Link href="/account/orders"><Button variant="outline">Go to my orders</Button></Link>
-        <Link href="/shop"><Button className="bg-blue-600 text-white hover:bg-blue-700">Continue shopping</Button></Link>
+        <Link href="/shop"><Button className="bg-brand text-white hover:bg-brand-dark">Continue shopping</Button></Link>
       </div>
     </div>
   );

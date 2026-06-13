@@ -44,7 +44,7 @@ function ResetContent() {
         <Label>Confirm new password</Label>
         <Input type="password" required minLength={8} value={confirm} onChange={(e) => setConfirm(e.target.value)} />
       </div>
-      <Button type="submit" disabled={busy} className="w-full bg-blue-600 text-white hover:bg-blue-700">
+      <Button type="submit" disabled={busy} className="w-full bg-brand text-white hover:bg-brand-dark">
         {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Set new password"}
       </Button>
     </form>

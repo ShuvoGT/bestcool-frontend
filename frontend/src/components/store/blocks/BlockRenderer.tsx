@@ -5,23 +5,35 @@
  */
 import Image from "next/image";
 import Link from "next/link";
-import { Mail, MapPin, Phone, Clock, Zap } from "lucide-react";
+import { Mail, MapPin, Phone, Clock, Zap, ChevronRight } from "lucide-react";
 import type { CmsBlock, ProductCardData } from "@/lib/server-api";
 import { HeroSlider, type Slide } from "@/components/store/blocks/HeroSlider";
 import { ProductCard } from "@/components/store/ProductCard";
 import { Countdown } from "@/components/store/Countdown";
 import { RatingStars } from "@/components/store/RatingStars";
+import { Reveal } from "@/components/store/Reveal";
 import {
   Accordion, AccordionContent, AccordionItem, AccordionTrigger,
 } from "@/components/ui/accordion";
 import { cn } from "@/lib/utils";
 
-function SectionHeading({ heading, subheading }: { heading?: string; subheading?: string }) {
+/** Left-aligned section heading with an orange accent bar + optional link. */
+function SectionHeading({ heading, subheading, viewAll }: { heading?: string; subheading?: string; viewAll?: string }) {
   if (!heading) return null;
   return (
-    <div className="mb-7 text-center">
-      <h2 className="text-2xl font-extrabold tracking-tight text-zinc-900 sm:text-3xl">{heading}</h2>
-      {subheading && <p className="mt-2 text-sm text-zinc-500">{subheading}</p>}
+    <div className="mb-6 flex items-end justify-between gap-4">
+      <div>
+        <h2 className="flex items-center gap-2.5 text-xl font-extrabold tracking-tight text-ink sm:text-2xl">
+          <span className="h-6 w-1.5 rounded-full bg-brand" />
+          {heading}
+        </h2>
+        {subheading && <p className="mt-1.5 pl-4 text-sm text-zinc-500">{subheading}</p>}
+      </div>
+      {viewAll && (
+        <Link href={viewAll} className="flex shrink-0 items-center gap-0.5 text-sm font-semibold text-brand hover:text-brand-dark">
+          View all <ChevronRight className="h-4 w-4" />
+        </Link>
+      )}
     </div>
   );
 }
@@ -63,7 +75,7 @@ function Block({ block }: { block: CmsBlock }) {
       return (
         <section className={cn(wrap, "max-w-3xl py-10")}>
           <div
-            className="prose-h2 space-y-4 text-[15px] leading-relaxed text-zinc-600 [&_a]:text-blue-600 [&_a]:underline [&_h2]:mt-8 [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:text-zinc-900 [&_h3]:mt-6 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-zinc-900 [&_li]:ml-5 [&_li]:list-disc [&_strong]:text-zinc-900"
+            className="prose-h2 space-y-4 text-[15px] leading-relaxed text-zinc-600 [&_a]:text-brand [&_a]:underline [&_h2]:mt-8 [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:text-zinc-900 [&_h3]:mt-6 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-zinc-900 [&_li]:ml-5 [&_li]:list-disc [&_strong]:text-zinc-900"
             dangerouslySetInnerHTML={{ __html: (c.html as string) ?? "" }}
           />
         </section>
@@ -108,10 +120,14 @@ function Block({ block }: { block: CmsBlock }) {
       const products = (block.data?.products ?? []) as ProductCardData[];
       if (!products.length) return null;
       return (
-        <section className={cn(wrap, "py-10")}>
-          <SectionHeading heading={c.heading as string} subheading={c.subheading as string} />
-          <div className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 xl:grid-cols-4">
-            {products.map((p) => <ProductCard key={p.id} product={p} />)}
+        <section className={cn(wrap, "py-9")}>
+          <SectionHeading heading={c.heading as string} subheading={c.subheading as string} viewAll="/shop" />
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-4">
+            {products.map((p, i) => (
+              <Reveal key={p.id} delay={(i % 4) * 70}>
+                <ProductCard product={p} />
+              </Reveal>
+            ))}
           </div>
         </section>
       );
@@ -121,24 +137,28 @@ function Block({ block }: { block: CmsBlock }) {
       const categories = (block.data?.categories ?? []) as { id: string; name: string; slug: string; image: string | null; productCount: number }[];
       if (!categories.length) return null;
       return (
-        <section className={cn(wrap, "py-10")}>
-          <SectionHeading heading={c.heading as string} />
-          <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
-            {categories.map((cat) => (
-              <Link
-                key={cat.id}
-                href={`/shop?category=${cat.slug}`}
-                className="group relative aspect-[3/2] overflow-hidden rounded-xl bg-zinc-100"
-              >
-                {cat.image && (
-                  <Image src={cat.image} alt={cat.name} fill unoptimized className="object-cover transition-transform duration-300 group-hover:scale-105" />
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                <div className="absolute bottom-3 left-4">
-                  <div className="font-bold text-white">{cat.name}</div>
-                  <div className="text-xs text-zinc-300">{cat.productCount} products</div>
-                </div>
-              </Link>
+        <section className={cn(wrap, "py-9")}>
+          <SectionHeading heading={c.heading as string} viewAll="/shop" />
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-6">
+            {categories.map((cat, i) => (
+              <Reveal key={cat.id} delay={(i % 6) * 60}>
+                <Link
+                  href={`/shop?category=${cat.slug}`}
+                  className="group flex flex-col items-center gap-3 rounded-xl border border-zinc-200/80 bg-white p-4 text-center transition-all hover:-translate-y-1 hover:border-brand/40 hover:shadow-[0_12px_30px_-14px_rgba(242,100,30,0.4)]"
+                >
+                  <div className="relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-full bg-brand-soft ring-1 ring-brand/10 transition-colors group-hover:bg-brand/10">
+                    {cat.image ? (
+                      <Image src={cat.image} alt={cat.name} fill unoptimized className="object-cover" />
+                    ) : (
+                      <Zap className="h-8 w-8 text-brand" />
+                    )}
+                  </div>
+                  <div>
+                    <div className="text-sm font-bold leading-tight text-ink group-hover:text-brand">{cat.name}</div>
+                    <div className="mt-0.5 text-xs text-zinc-400">{cat.productCount} items</div>
+                  </div>
+                </Link>
+              </Reveal>
             ))}
           </div>
         </section>
@@ -149,20 +169,23 @@ function Block({ block }: { block: CmsBlock }) {
       const sale = block.data?.flashSale as { id: string; title: string; endsAt: string; products: ProductCardData[] } | null;
       if (!sale || !sale.products.length) return null;
       return (
-        <section className="bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 py-10">
+        <section className="py-9">
           <div className={wrap}>
-            <div className="mb-7 flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
-              <div>
-                <h2 className="flex items-center gap-2 text-2xl font-extrabold tracking-tight text-zinc-900 sm:text-3xl">
-                  <Zap className="h-7 w-7 fill-amber-400 text-amber-500" />
+            <div className="overflow-hidden rounded-2xl border border-brand/15 bg-white shadow-sm">
+              {/* Deal banner header */}
+              <div className="flex flex-col items-center gap-3 bg-gradient-to-r from-brand to-brand-dark px-5 py-4 sm:flex-row sm:justify-between">
+                <h2 className="flex items-center gap-2 text-xl font-extrabold tracking-tight text-white sm:text-2xl">
+                  <Zap className="h-6 w-6 fill-white" />
                   {(c.heading as string) || sale.title}
                 </h2>
-                {c.subheading && <p className="mt-1 text-sm text-zinc-500">{c.subheading as string}</p>}
+                <div className="flex items-center gap-2.5">
+                  <span className="text-sm font-medium text-white/90">Ends in</span>
+                  <Countdown endsAt={sale.endsAt} size="sm" />
+                </div>
               </div>
-              <Countdown endsAt={sale.endsAt} />
-            </div>
-            <div className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 xl:grid-cols-4">
-              {sale.products.map((p) => <ProductCard key={p.id} product={p} />)}
+              <div className="grid grid-cols-2 gap-3 p-4 sm:gap-4 md:grid-cols-3 xl:grid-cols-4">
+                {sale.products.map((p) => <ProductCard key={p.id} product={p} />)}
+              </div>
             </div>
           </div>
         </section>
@@ -225,12 +248,12 @@ function Block({ block }: { block: CmsBlock }) {
               .filter((x) => x.value)
               .map(({ icon: Icon, label, value, href }) => (
                 <div key={label} className="rounded-xl border border-zinc-200 bg-white p-5 text-center shadow-sm">
-                  <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+                  <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-brand-soft text-brand">
                     <Icon className="h-5 w-5" />
                   </div>
                   <div className="text-xs font-semibold uppercase tracking-wider text-zinc-400">{label}</div>
                   {href ? (
-                    <a href={href} className="mt-1 block text-sm font-medium text-zinc-900 hover:text-blue-600">{value}</a>
+                    <a href={href} className="mt-1 block text-sm font-medium text-zinc-900 hover:text-brand">{value}</a>
                   ) : (
                     <div className="mt-1 text-sm font-medium text-zinc-900">{value}</div>
                   )}

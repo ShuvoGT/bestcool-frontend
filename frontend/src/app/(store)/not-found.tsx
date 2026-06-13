@@ -8,7 +8,7 @@ export default function NotFound() {
       <SearchX className="h-12 w-12 text-zinc-300" />
       <h1 className="text-3xl font-extrabold text-zinc-900">Page not found</h1>
       <p className="text-sm text-zinc-500">The page you&apos;re looking for doesn&apos;t exist or may have been moved.</p>
-      <Link href="/"><Button className="bg-blue-600 text-white hover:bg-blue-700">Back to home</Button></Link>
+      <Link href="/"><Button className="bg-brand text-white hover:bg-brand-dark">Back to home</Button></Link>
     </div>
   );
 }

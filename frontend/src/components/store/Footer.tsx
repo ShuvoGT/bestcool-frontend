@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Globe, Mail, MapPin, Phone } from "lucide-react";
+import { Globe, Mail, MapPin, Phone, Truck, ShieldCheck, RotateCcw, Headphones } from "lucide-react";
 import type { Settings } from "@/lib/server-api";
 
 // lucide-react removed brand icons — minimal inline glyphs instead.
@@ -28,8 +28,32 @@ export function Footer({ settings }: { settings: Settings }) {
   const columns: FooterColumn[] = settings["footer.columns"] ?? [];
   const socials: { platform: string; url: string }[] = settings["social.links"] ?? [];
 
+  const features = [
+    { icon: Truck, title: "Fast Delivery", sub: "All 64 districts" },
+    { icon: ShieldCheck, title: "Secure Payment", sub: "bKash · Nagad · Card · COD" },
+    { icon: RotateCcw, title: "Easy Returns", sub: "7-day replacement" },
+    { icon: Headphones, title: "Dedicated Support", sub: settings["contact.phone"] ?? "We're here to help" },
+  ];
+
   return (
-    <footer className="border-t border-zinc-200 bg-zinc-950 text-zinc-300">
+    <footer className="bg-ink text-zinc-300">
+      {/* Trust-badge strip */}
+      <div className="border-b border-white/8">
+        <div className="mx-auto grid max-w-7xl gap-5 px-4 py-7 sm:grid-cols-2 sm:px-6 lg:grid-cols-4">
+          {features.map((f) => (
+            <div key={f.title} className="flex items-center gap-3">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-brand/15 text-brand">
+                <f.icon className="h-5 w-5" />
+              </span>
+              <div>
+                <div className="text-sm font-bold text-white">{f.title}</div>
+                <div className="text-xs text-zinc-400">{f.sub}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 md:grid-cols-2 lg:grid-cols-4">
         {/* Brand + contact */}
         <div className="space-y-4">
@@ -45,7 +69,7 @@ export function Footer({ settings }: { settings: Settings }) {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={s.platform}
-                  className="flex h-9 w-9 items-center justify-center rounded-full bg-white/8 text-zinc-300 transition-colors hover:bg-blue-600 hover:text-white"
+                  className="flex h-9 w-9 items-center justify-center rounded-full bg-white/8 text-zinc-300 transition-colors hover:bg-brand hover:text-white"
                 >
                   <Icon className="h-4 w-4" />
                 </a>
@@ -76,19 +100,19 @@ export function Footer({ settings }: { settings: Settings }) {
           <ul className="space-y-3 text-sm text-zinc-400">
             {settings["contact.phone"] && (
               <li className="flex items-start gap-2.5">
-                <Phone className="mt-0.5 h-4 w-4 shrink-0 text-blue-400" />
+                <Phone className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
                 <a href={`tel:${settings["contact.phone"]}`} className="hover:text-white">{settings["contact.phone"]}</a>
               </li>
             )}
             {settings["contact.email"] && (
               <li className="flex items-start gap-2.5">
-                <Mail className="mt-0.5 h-4 w-4 shrink-0 text-blue-400" />
+                <Mail className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
                 <a href={`mailto:${settings["contact.email"]}`} className="hover:text-white">{settings["contact.email"]}</a>
               </li>
             )}
             {settings["contact.address"] && (
               <li className="flex items-start gap-2.5">
-                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-blue-400" />
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
                 <span>{settings["contact.address"]}</span>
               </li>
             )}

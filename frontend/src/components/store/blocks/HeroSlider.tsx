@@ -54,7 +54,7 @@ export function HeroSlider({ slides }: { slides: Slide[] }) {
               {slide.subheading && <p className="max-w-md text-sm text-zinc-200 sm:text-base">{slide.subheading}</p>}
               {slide.buttonText && slide.buttonLink && (
                 <Link href={slide.buttonLink}>
-                  <Button size="lg" className="mt-2 bg-blue-600 font-semibold text-white shadow-lg hover:bg-blue-700">
+                  <Button size="lg" className="mt-2 rounded-full bg-brand px-7 font-semibold text-white shadow-lg shadow-orange-900/20 transition-transform hover:bg-brand-dark hover:scale-105">
                     {slide.buttonText}
                   </Button>
                 </Link>

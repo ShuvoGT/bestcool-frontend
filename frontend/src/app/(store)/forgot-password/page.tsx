@@ -37,7 +37,7 @@ export default function ForgotPasswordPage() {
           <p className="text-sm text-emerald-800">
             If an account exists for <strong>{email}</strong>, a reset link is on its way. The link expires in 1 hour.
           </p>
-          <Link href="/account/login" className="text-sm font-semibold text-blue-600 hover:underline">Back to login</Link>
+          <Link href="/account/login" className="text-sm font-semibold text-brand hover:underline">Back to login</Link>
         </div>
       ) : (
         <form onSubmit={submit} className="space-y-4 rounded-xl border border-zinc-200 p-6">
@@ -45,7 +45,7 @@ export default function ForgotPasswordPage() {
             <Label>Email</Label>
             <Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
           </div>
-          <Button type="submit" disabled={busy} className="w-full bg-blue-600 text-white hover:bg-blue-700">
+          <Button type="submit" disabled={busy} className="w-full bg-brand text-white hover:bg-brand-dark">
             {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Send reset link"}
           </Button>
         </form>

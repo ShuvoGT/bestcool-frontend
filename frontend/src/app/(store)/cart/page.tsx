@@ -30,7 +30,7 @@ export default function CartPage() {
         <ShoppingCart className="h-12 w-12 text-zinc-200" />
         <h1 className="text-2xl font-extrabold text-zinc-900">Your cart is empty</h1>
         <p className="text-sm text-zinc-500">Add some products and they&apos;ll show up here.</p>
-        <Link href="/shop"><Button className="bg-blue-600 text-white hover:bg-blue-700">Browse products</Button></Link>
+        <Link href="/shop"><Button className="bg-brand text-white hover:bg-brand-dark">Browse products</Button></Link>
       </div>
     );
   }
@@ -47,7 +47,7 @@ export default function CartPage() {
                 {item.image && <Image src={item.image} alt="" fill unoptimized className="object-cover" />}
               </Link>
               <div className="flex min-w-0 flex-1 flex-col">
-                <Link href={`/product/${item.slug}`} className="line-clamp-2 font-semibold text-zinc-900 hover:text-blue-600">
+                <Link href={`/product/${item.slug}`} className="line-clamp-2 font-semibold text-zinc-900 hover:text-brand">
                   {item.name}
                 </Link>
                 {item.variantName && <span className="text-xs text-zinc-500">{item.variantName}</span>}
@@ -102,7 +102,7 @@ export default function CartPage() {
             </div>
           </div>
           <Link href="/checkout">
-            <Button className="mt-5 h-12 w-full bg-blue-600 text-base font-semibold text-white shadow-lg shadow-blue-200 hover:bg-blue-700">
+            <Button className="mt-5 h-12 w-full bg-brand text-base font-semibold text-white shadow-lg shadow-orange-200 hover:bg-brand-dark">
               Proceed to Checkout
             </Button>
           </Link>
