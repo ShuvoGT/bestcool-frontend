@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -22,24 +22,14 @@ export function Header({ settings, categories }: { settings: Settings; categorie
   const [cartOpen, setCartOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerTab, setDrawerTab] = useState<"categories" | "menu">("categories");
-  const [catOpen, setCatOpen] = useState(false);
+  const [catSidebarOpen, setCatSidebarOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const catRef = useRef<HTMLDivElement>(null);
 
   const siteName: string = settings["site.name"] ?? "Next Mart";
   const logo: string | null = settings["site.logo"] ?? null;
   const nav: NavLink[] = settings["nav.header"] ?? [];
   const phone: string | null = settings["contact.phone"] ?? null;
   const email: string | null = settings["contact.email"] ?? null;
-
-  // Close the desktop category dropdown on outside click.
-  useEffect(() => {
-    function onClick(e: MouseEvent) {
-      if (catRef.current && !catRef.current.contains(e.target as Node)) setCatOpen(false);
-    }
-    document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
-  }, []);
 
   function submitSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -128,41 +118,13 @@ export function Header({ settings, categories }: { settings: Settings; categorie
         {/* Row 2: Top Categories dropdown + nav */}
         <div className="border-t border-zinc-100 bg-white">
           <div className="mx-auto flex max-w-7xl items-stretch px-4 sm:px-6">
-            <div ref={catRef} className="relative">
-              <button
-                onClick={() => setCatOpen((v) => !v)}
-                className="flex h-full items-center gap-2 bg-ink px-5 py-3 text-sm font-bold text-white"
-              >
-                <LayoutGrid className="h-4 w-4" /> Top Categories <ChevronDown className={cn("h-4 w-4 transition-transform", catOpen && "rotate-180")} />
-              </button>
-              {/* Dropdown panel — backend-driven category list */}
-              {catOpen && (
-                <div className="absolute left-0 top-full z-50 w-72 overflow-hidden rounded-b-xl border border-zinc-200 bg-white shadow-2xl">
-                  <ul className="max-h-[70vh] overflow-y-auto py-1">
-                    {categories.map((c) => (
-                      <li key={c.id}>
-                        <Link
-                          href={`/shop?category=${c.slug}`}
-                          onClick={() => setCatOpen(false)}
-                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-zinc-700 transition-colors hover:bg-brand-soft hover:text-brand"
-                        >
-                          <span className="relative flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-md bg-zinc-100">
-                            {c.image ? <Image src={c.image} alt="" fill unoptimized className="object-cover" /> : <LayoutGrid className="h-4 w-4 text-zinc-400" />}
-                          </span>
-                          <span className="flex-1 font-medium">{c.name}</span>
-                          <ChevronRight className="h-4 w-4 text-zinc-300" />
-                        </Link>
-                      </li>
-                    ))}
-                    <li className="border-t border-zinc-100">
-                      <Link href="/shop" onClick={() => setCatOpen(false)} className="block px-4 py-2.5 text-sm font-semibold text-brand hover:bg-brand-soft">
-                        View all products →
-                      </Link>
-                    </li>
-                  </ul>
-                </div>
-              )}
-            </div>
+            {/* Opens the left category sidebar (Akij style) */}
+            <button
+              onClick={() => setCatSidebarOpen(true)}
+              className="flex items-center gap-2 bg-ink px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-brand-dark"
+            >
+              <LayoutGrid className="h-4 w-4" /> Top Categories <ChevronDown className="h-4 w-4" />
+            </button>
             <nav className="flex items-center">
               {nav.map((link) => (
                 <Link key={link.href} href={link.href} className="px-4 py-3 text-sm font-semibold text-zinc-700 transition-colors hover:text-brand">
@@ -236,6 +198,39 @@ export function Header({ settings, categories }: { settings: Settings; categorie
               </li>
             </ul>
           )}
+        </SheetContent>
+      </Sheet>
+
+      {/* Desktop "Top Categories" → left sliding sidebar (Akij style) */}
+      <Sheet open={catSidebarOpen} onOpenChange={setCatSidebarOpen}>
+        <SheetContent side="left" className="w-80 p-0">
+          <SheetTitle className="sr-only">All Categories</SheetTitle>
+          <div className="flex items-center gap-2 bg-ink px-5 py-4 text-sm font-bold text-white">
+            <LayoutGrid className="h-4.5 w-4.5" /> All Categories
+          </div>
+          <ul className="h-[calc(100vh-3.75rem)] overflow-y-auto">
+            {categories.map((c) => (
+              <li key={c.id} className="border-b border-zinc-50">
+                <Link
+                  href={`/shop?category=${c.slug}`}
+                  onClick={() => setCatSidebarOpen(false)}
+                  className="flex items-center gap-3 px-5 py-3 text-sm text-zinc-700 transition-colors hover:bg-brand-soft hover:text-brand"
+                >
+                  <span className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-md bg-zinc-100">
+                    {c.image ? <Image src={c.image} alt="" fill unoptimized className="object-cover" /> : <LayoutGrid className="h-4 w-4 text-zinc-400" />}
+                  </span>
+                  <span className="flex-1 font-medium">{c.name}</span>
+                  <span className="text-xs text-zinc-400">{c.productCount}</span>
+                  <ChevronRight className="h-4 w-4 text-zinc-300" />
+                </Link>
+              </li>
+            ))}
+            <li>
+              <Link href="/shop" onClick={() => setCatSidebarOpen(false)} className="block px-5 py-3.5 text-sm font-bold text-brand hover:bg-brand-soft">
+                View all products →
+              </Link>
+            </li>
+          </ul>
         </SheetContent>
       </Sheet>
 
