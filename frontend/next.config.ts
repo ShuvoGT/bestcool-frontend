@@ -23,6 +23,9 @@ const nextConfig: NextConfig = {
       // Seed/demo placeholder images
       { protocol: "https", hostname: "placehold.co" },
       { protocol: "https", hostname: "picsum.photos" },
+      // Reference images hotlinked from akijce.com (used during design)
+      { protocol: "https", hostname: "akijce.com" },
+      { protocol: "https", hostname: "www.akijce.com" },
       // Uploaded product images stored on Cloudinary (production)
       { protocol: "https", hostname: "res.cloudinary.com", pathname: "/**" },
       // Uploaded product images from the API /uploads folder (local-disk storage:
