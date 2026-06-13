@@ -6,15 +6,16 @@
  *   3. customer pays; Nagad redirects to our callback with payment_ref_id+status
  *   4. verify() → GET verify/payment/{ref} server-side; trust only "Success"
  *
- * All sensitive payloads are encrypted with Nagad's PG public key and signed
- * with the merchant private key (see nagadCrypto).
+ * Sensitive payloads are encrypted with Nagad's PG public key and signed with
+ * the merchant private key; responses' signatures are verified (see
+ * nagadCrypto). Credentials come from the admin Settings panel (DB).
  *
  * Docs: https://nagad.com.bd (merchant onboarding) / Nagad PG integration guide
  */
-import { env } from "../config/env";
 import type {
   InitiateContext,
   InitiateResult,
+  PaymentConfig,
   PaymentProvider,
   VerifyResult,
 } from "./PaymentProvider";
@@ -26,8 +27,8 @@ import {
   verifyNagadSignature,
 } from "./nagadCrypto";
 
-const BASE =
-  env.paymentMode === "live"
+const baseFor = (cfg: PaymentConfig) =>
+  cfg.mode === "live"
     ? "https://api.mynagad.com/remote-payment-gateway-1.0"
     : "http://sandbox.mynagad.com:10080/remote-payment-gateway-1.0";
 
@@ -42,9 +43,9 @@ function nagadTimestamp(): string {
 export class NagadProvider implements PaymentProvider {
   readonly method = "NAGAD" as const;
 
-  get configured(): boolean {
-    const c = env.payment.nagad;
-    return Boolean(c.merchantId && c.merchantPrivateKey && c.pgPublicKey);
+  isConfigured(cfg: PaymentConfig): boolean {
+    const c = cfg.nagad;
+    return c.enabled && Boolean(c.merchantId && c.merchantPrivateKey && c.pgPublicKey);
   }
 
   private headers() {
@@ -57,47 +58,45 @@ export class NagadProvider implements PaymentProvider {
     };
   }
 
-  private sensitive(obj: Record<string, unknown>) {
+  private sensitive(obj: Record<string, unknown>, cfg: PaymentConfig) {
     const plain = JSON.stringify(obj);
     return {
-      sensitiveData: encryptWithPgPublicKey(plain, env.payment.nagad.pgPublicKey),
-      signature: signWithMerchantPrivateKey(plain, env.payment.nagad.merchantPrivateKey),
+      sensitiveData: encryptWithPgPublicKey(plain, cfg.nagad.pgPublicKey),
+      signature: signWithMerchantPrivateKey(plain, cfg.nagad.merchantPrivateKey),
     };
   }
 
   /** Decrypt a Nagad response and verify its signature (fail closed). */
-  private decrypt(sensitiveData: string, signature?: string): Record<string, unknown> {
-    const plain = decryptWithMerchantPrivateKey(sensitiveData, env.payment.nagad.merchantPrivateKey);
-    if (signature && !verifyNagadSignature(plain, signature, env.payment.nagad.pgPublicKey)) {
+  private decrypt(sensitiveData: string, signature: string | undefined, cfg: PaymentConfig): Record<string, unknown> {
+    const plain = decryptWithMerchantPrivateKey(sensitiveData, cfg.nagad.merchantPrivateKey);
+    if (signature && !verifyNagadSignature(plain, signature, cfg.nagad.pgPublicKey)) {
       throw new Error("Nagad response signature verification failed");
     }
     return JSON.parse(plain);
   }
 
-  async initiate(ctx: InitiateContext): Promise<InitiateResult> {
-    const c = env.payment.nagad;
+  async initiate(ctx: InitiateContext, cfg: PaymentConfig): Promise<InitiateResult> {
+    const c = cfg.nagad;
+    const base = baseFor(cfg);
     const datetime = nagadTimestamp();
 
     // Step 1 — initialize
-    const initBody = this.sensitive({ merchantId: c.merchantId, datetime, orderId: ctx.orderNumber, challenge: randomChallenge() });
-    const initRes = await fetch(`${BASE}/api/dfs/check-out/initialize/${c.merchantId}/${ctx.orderNumber}`, {
+    const initBody = this.sensitive({ merchantId: c.merchantId, datetime, orderId: ctx.orderNumber, challenge: randomChallenge() }, cfg);
+    const initRes = await fetch(`${base}/api/dfs/check-out/initialize/${c.merchantId}/${ctx.orderNumber}`, {
       method: "POST",
       headers: this.headers(),
       body: JSON.stringify({ dateTime: datetime, ...initBody }),
     });
     const initJson = (await initRes.json()) as { sensitiveData?: string; signature?: string; reason?: string; message?: string };
     if (!initJson.sensitiveData) throw new Error(`Nagad initialize failed: ${initJson.message || initJson.reason || "no response"}`);
-    const initData = this.decrypt(initJson.sensitiveData, initJson.signature) as { paymentReferenceId: string; challenge: string };
+    const initData = this.decrypt(initJson.sensitiveData, initJson.signature, cfg) as { paymentReferenceId: string; challenge: string };
 
     // Step 2 — complete
-    const completeBody = this.sensitive({
-      merchantId: c.merchantId,
-      orderId: ctx.orderNumber,
-      currencyCode: "050", // BDT
-      amount: ctx.amount.toFixed(2),
-      challenge: initData.challenge,
-    });
-    const completeRes = await fetch(`${BASE}/api/dfs/check-out/complete/${initData.paymentReferenceId}`, {
+    const completeBody = this.sensitive(
+      { merchantId: c.merchantId, orderId: ctx.orderNumber, currencyCode: "050", amount: ctx.amount.toFixed(2), challenge: initData.challenge },
+      cfg
+    );
+    const completeRes = await fetch(`${base}/api/dfs/check-out/complete/${initData.paymentReferenceId}`, {
       method: "POST",
       headers: this.headers(),
       body: JSON.stringify({
@@ -108,13 +107,13 @@ export class NagadProvider implements PaymentProvider {
     });
     const completeJson = (await completeRes.json()) as { sensitiveData?: string; signature?: string; status?: string; message?: string };
     if (!completeJson.sensitiveData) throw new Error(`Nagad complete failed: ${completeJson.message || "no response"}`);
-    const completeData = this.decrypt(completeJson.sensitiveData, completeJson.signature) as { status: string; callBackUrl: string };
+    const completeData = this.decrypt(completeJson.sensitiveData, completeJson.signature, cfg) as { status: string; callBackUrl: string };
     if (!completeData.callBackUrl) throw new Error("Nagad did not return a callback URL");
 
     return { redirectUrl: completeData.callBackUrl, gatewayReference: initData.paymentReferenceId, raw: completeData };
   }
 
-  async verify(orderNumber: string, params: Record<string, unknown>): Promise<VerifyResult> {
+  async verify(orderNumber: string, params: Record<string, unknown>, cfg: PaymentConfig): Promise<VerifyResult> {
     const refId = (params.payment_ref_id as string) || (params.paymentRefId as string) || "";
     const status = ((params.status as string) || "").toLowerCase();
 
@@ -122,7 +121,7 @@ export class NagadProvider implements PaymentProvider {
     if (status === "aborted" || status === "cancelled") return { outcome: "CANCELLED", raw: params };
 
     // Server-side verification — authoritative.
-    const res = await fetch(`${BASE}/api/dfs/verify/payment/${refId}`, { headers: this.headers() });
+    const res = await fetch(`${baseFor(cfg)}/api/dfs/verify/payment/${refId}`, { headers: this.headers() });
     const data = (await res.json()) as {
       status?: string; issuerPaymentRefNo?: string; amount?: string; paymentRefId?: string; orderId?: string;
     };

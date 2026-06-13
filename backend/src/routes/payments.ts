@@ -17,6 +17,7 @@ import { callbackLimiter, checkoutLimiter } from "../middleware/rateLimit";
 import { env } from "../config/env";
 import { prisma } from "../lib/prisma";
 import { listOnlineMethods } from "../payments";
+import { loadPaymentConfig } from "../payments/config";
 import { initiatePayment, verifyAndSettle, verifyPaymentToken } from "../services/payments";
 
 export const paymentsRouter = Router();
@@ -34,15 +35,17 @@ const LABELS: Record<PaymentMethod, string> = {
   SSLCOMMERZ: "Card / Net Banking (SSLCommerz)",
 };
 
-// Which payment methods the storefront may offer (COD always; online only
-// when configured).
+// Payment methods the storefront may offer. COD is always available; an online
+// gateway appears ONLY when it's configured in admin Settings (or .env) — so
+// unconfigured gateways are hidden from checkout entirely.
 paymentsRouter.get(
   "/methods",
   asyncHandler(async (_req, res) => {
-    const online = listOnlineMethods().map((m) => ({ ...m, label: LABELS[m.method] }));
-    res.json({
-      methods: [{ method: "COD", label: LABELS.COD, configured: true }, ...online],
-    });
+    const cfg = await loadPaymentConfig();
+    const online = listOnlineMethods(cfg)
+      .filter((m) => m.configured)
+      .map((m) => ({ method: m.method, label: LABELS[m.method] }));
+    res.json({ methods: [{ method: "COD", label: LABELS.COD }, ...online] });
   })
 );
 

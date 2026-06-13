@@ -86,6 +86,14 @@ export default function AdminSettingsPage() {
   const socials = get<SocialLink[]>("social.links", []);
   const smsEvents = get<Record<string, boolean>>("sms.events", {});
 
+  // Payment gateway credentials (managed here, never exposed to the storefront).
+  type Gw = Record<string, string | boolean>;
+  const paymentMode = get<string>("payment.mode", "sandbox");
+  const bkash = get<Gw>("payment.bkash", {});
+  const nagad = get<Gw>("payment.nagad", {});
+  const ssl = get<Gw>("payment.sslcommerz", {});
+  const gwField = (key: string, gw: Gw, field: string, value: string) => set(key, { ...gw, [field]: value });
+
   const tabCls = "data-[state=active]:bg-cyan-500/15 data-[state=active]:text-cyan-300 text-zinc-400";
 
   return (
@@ -105,6 +113,7 @@ export default function AdminSettingsPage() {
           <TabsTrigger value="general" className={tabCls}>General</TabsTrigger>
           <TabsTrigger value="menus" className={tabCls}>Menus & Footer</TabsTrigger>
           <TabsTrigger value="integrations" className={tabCls}>Integrations</TabsTrigger>
+          <TabsTrigger value="payments" className={tabCls}>Payments</TabsTrigger>
           <TabsTrigger value="sms" className={tabCls}>SMS</TabsTrigger>
           <TabsTrigger value="delivery" className={tabCls}>Delivery</TabsTrigger>
         </TabsList>
@@ -242,6 +251,66 @@ export default function AdminSettingsPage() {
             <p className="text-xs text-zinc-500">
               Tracking scripts load on the storefront only when an ID is present — no redeploy needed. They never load on /admin.
             </p>
+          </GlassCard>
+        </TabsContent>
+
+        {/* Payments */}
+        <TabsContent value="payments" className="space-y-6">
+          <GlassCard className="space-y-4 p-5">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-400">Mode</h2>
+            <div className="flex gap-2">
+              {(["sandbox", "live"] as const).map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => set("payment.mode", mode)}
+                  className={`rounded-lg border px-4 py-2 text-sm font-medium capitalize transition-all ${
+                    paymentMode === mode ? "border-cyan-400/40 bg-cyan-500/15 text-cyan-300" : "border-white/10 bg-white/5 text-zinc-400"
+                  }`}
+                >
+                  {mode}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-zinc-500">
+              Selects sandbox (testing) or live gateway endpoints for all methods. A gateway appears at
+              checkout only when it&apos;s enabled and all its credentials are filled in below — otherwise
+              customers see Cash on Delivery only. These secrets are admin-only and never sent to the storefront.
+            </p>
+          </GlassCard>
+
+          {/* bKash */}
+          <GlassCard className="space-y-4 p-5">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-400">bKash (Tokenized Checkout)</h2>
+            </div>
+            <SwitchField label="Enable bKash" checked={bkash.enabled !== false} onChange={(v) => set("payment.bkash", { ...bkash, enabled: v })} />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <TextField label="App Key" value={String(bkash.appKey ?? "")} onChange={(v) => gwField("payment.bkash", bkash, "appKey", v)} />
+              <TextField label="App Secret" value={String(bkash.appSecret ?? "")} onChange={(v) => gwField("payment.bkash", bkash, "appSecret", v)} />
+              <TextField label="Username" value={String(bkash.username ?? "")} onChange={(v) => gwField("payment.bkash", bkash, "username", v)} />
+              <TextField label="Password" value={String(bkash.password ?? "")} onChange={(v) => gwField("payment.bkash", bkash, "password", v)} />
+            </div>
+          </GlassCard>
+
+          {/* Nagad */}
+          <GlassCard className="space-y-4 p-5">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-400">Nagad</h2>
+            <SwitchField label="Enable Nagad" checked={nagad.enabled !== false} onChange={(v) => set("payment.nagad", { ...nagad, enabled: v })} />
+            <TextField label="Merchant ID" value={String(nagad.merchantId ?? "")} onChange={(v) => gwField("payment.nagad", nagad, "merchantId", v)} />
+            <TextareaField label="Merchant Private Key" value={String(nagad.merchantPrivateKey ?? "")} onChange={(v) => gwField("payment.nagad", nagad, "merchantPrivateKey", v)} rows={3} hint="Base64 or PEM — used to sign requests." />
+            <TextareaField label="Nagad PG Public Key" value={String(nagad.pgPublicKey ?? "")} onChange={(v) => gwField("payment.nagad", nagad, "pgPublicKey", v)} rows={3} hint="Base64 or PEM — Nagad's public key, used to encrypt payloads." />
+          </GlassCard>
+
+          {/* SSLCommerz */}
+          <GlassCard className="space-y-4 p-5">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-400">SSLCommerz (Card / Net Banking / Mobile)</h2>
+            <SwitchField label="Enable SSLCommerz" checked={ssl.enabled !== false} onChange={(v) => set("payment.sslcommerz", { ...ssl, enabled: v })} />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <TextField label="Store ID" value={String(ssl.storeId ?? "")} onChange={(v) => gwField("payment.sslcommerz", ssl, "storeId", v)} />
+              <TextField label="Store Password" value={String(ssl.storePassword ?? "")} onChange={(v) => gwField("payment.sslcommerz", ssl, "storePassword", v)} />
+            </div>
+            <p className="text-xs text-zinc-500">Free sandbox store: developer.sslcommerz.com — the quickest gateway to test.</p>
           </GlassCard>
         </TabsContent>
 

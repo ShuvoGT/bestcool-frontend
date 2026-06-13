@@ -155,12 +155,19 @@ Courier API setup notes will be expanded here when Phase 7 is built.
 
 All four payment methods sit behind a single `PaymentProvider` interface
 (`backend/src/payments/`). **Cash on Delivery works out of the box.** The three
-online gateways are **fully implemented** but each needs sandbox credentials in
-`backend/.env` before it appears as selectable at checkout — until then the
-storefront shows it as "Not available yet" (driven by `GET /api/payments/methods`).
+online gateways are **fully implemented** but each needs credentials before it
+appears at checkout.
 
-Set `PAYMENT_MODE=sandbox` (default) or `live` to switch every gateway's base URLs
-at once. Then fill the keys for whichever gateway you want to enable:
+**Credentials are managed from the Admin panel → Settings → Payments** (stored in
+the database; `.env` values act as fallback defaults). There you set the mode
+(sandbox/live), each gateway's keys, and an enable toggle. A gateway appears at
+checkout **only when it is enabled and all its credentials are filled in** —
+otherwise customers see Cash on Delivery only (driven by `GET /api/payments/methods`).
+These secrets are admin-only and are never exposed to the storefront.
+
+You can alternatively pre-seed credentials via `backend/.env` (the keys below);
+admin-panel values take precedence. `PAYMENT_MODE=sandbox|live` in `.env` is the
+fallback when no mode is set in the admin panel.
 
 ### bKash (Tokenized Checkout / PGW)
 Get sandbox credentials from the [bKash merchant portal](https://developer.bka.sh).

@@ -1,5 +1,5 @@
 import type { PaymentMethod } from "@prisma/client";
-import type { PaymentProvider } from "./PaymentProvider";
+import type { PaymentConfig, PaymentProvider } from "./PaymentProvider";
 import { BkashProvider } from "./bkash";
 import { NagadProvider } from "./nagad";
 import { SslCommerzProvider } from "./sslcommerz";
@@ -17,10 +17,10 @@ export function getProvider(method: PaymentMethod): PaymentProvider | null {
   return providers[method] ?? null;
 }
 
-/** Public list of online methods + whether each has credentials configured. */
-export function listOnlineMethods() {
+/** Online methods + whether each is currently configured (admin/.env creds). */
+export function listOnlineMethods(cfg: PaymentConfig) {
   return (Object.keys(providers) as PaymentMethod[]).map((method) => ({
     method,
-    configured: providers[method]!.configured,
+    configured: providers[method]!.isConfigured(cfg),
   }));
 }

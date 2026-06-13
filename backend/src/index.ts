@@ -19,7 +19,6 @@ import { categoriesRouter, pagesRouter, settingsRouter, deliveryZonesRouter, fla
 import { cartRouter, wishlistRouter } from "./routes/cartWishlist";
 import { ordersRouter } from "./routes/orders";
 import { paymentsRouter } from "./routes/payments";
-import { listOnlineMethods } from "./payments";
 import { reconcilePendingPayments } from "./services/payments";
 
 import { adminProductsRouter, adminCategoriesRouter, adminUploadsRouter } from "./routes/admin/products";
@@ -82,22 +81,13 @@ app.use(errorHandler);
 app.listen(env.port, () => {
   console.log(`Next Mart API running on http://localhost:${env.port} (${env.nodeEnv})`);
 
-  // Warn if live mode is selected but a gateway has no credentials.
-  if (env.paymentMode === "live") {
-    for (const m of listOnlineMethods()) {
-      if (!m.configured) console.warn(`⚠ PAYMENT_MODE=live but ${m.method} has no credentials configured.`);
-    }
-  }
-
   // Reconciliation sweep: settle bKash/Nagad orders whose browser redirect
-  // never landed. Only runs when at least one such gateway is configured.
-  const hasOnlineGateway = listOnlineMethods().some((m) => m.configured);
-  if (hasOnlineGateway) {
-    const RECONCILE_EVERY_MS = 5 * 60 * 1000;
-    setInterval(() => {
-      reconcilePendingPayments()
-        .then((r) => r.settled > 0 && console.log(`Payment reconcile: settled ${r.settled}/${r.checked} pending order(s)`))
-        .catch((err) => console.error("Payment reconcile sweep failed:", err));
-    }, RECONCILE_EVERY_MS).unref();
-  }
+  // never landed. Each run loads the current admin/.env config and no-ops when
+  // no gateway is configured, so it's safe to always schedule.
+  const RECONCILE_EVERY_MS = 5 * 60 * 1000;
+  setInterval(() => {
+    reconcilePendingPayments()
+      .then((r) => r.settled > 0 && console.log(`Payment reconcile: settled ${r.settled}/${r.checked} pending order(s)`))
+      .catch((err) => console.error("Payment reconcile sweep failed:", err));
+  }, RECONCILE_EVERY_MS).unref();
 });

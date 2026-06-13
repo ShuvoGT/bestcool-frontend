@@ -11,6 +11,21 @@
  */
 import type { PaymentMethod } from "@prisma/client";
 
+export type PaymentMode = "sandbox" | "live";
+
+/**
+ * Resolved payment configuration. Credentials are managed from the admin
+ * Settings panel (DB) with .env as a fallback default — see payments/config.ts.
+ * A gateway is only offered at checkout when its slice is `enabled` AND all
+ * required credentials are present.
+ */
+export type PaymentConfig = {
+  mode: PaymentMode;
+  bkash: { enabled: boolean; appKey: string; appSecret: string; username: string; password: string };
+  nagad: { enabled: boolean; merchantId: string; merchantPrivateKey: string; pgPublicKey: string };
+  sslcommerz: { enabled: boolean; storeId: string; storePassword: string };
+};
+
 export type InitiateContext = {
   /** Our order number, used as the gateway's merchant transaction id. */
   orderNumber: string;
@@ -45,11 +60,12 @@ export type VerifyResult = {
 
 export interface PaymentProvider {
   readonly method: PaymentMethod;
-  /** True only when all required credentials are present in env. */
-  readonly configured: boolean;
+
+  /** True only when this gateway is enabled and all its credentials are set. */
+  isConfigured(cfg: PaymentConfig): boolean;
 
   /** Create a gateway session and return where to send the customer. */
-  initiate(ctx: InitiateContext): Promise<InitiateResult>;
+  initiate(ctx: InitiateContext, cfg: PaymentConfig): Promise<InitiateResult>;
 
   /**
    * Server-side verification. `orderNumber` is the order being settled; the
@@ -57,5 +73,5 @@ export interface PaymentProvider {
    * (anti cross-order-replay) before reporting PAID. `params` carries whatever
    * the gateway sent to our callback/IPN (query or body).
    */
-  verify(orderNumber: string, params: Record<string, unknown>): Promise<VerifyResult>;
+  verify(orderNumber: string, params: Record<string, unknown>, cfg: PaymentConfig): Promise<VerifyResult>;
 }

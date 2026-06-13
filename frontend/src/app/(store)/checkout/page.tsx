@@ -22,7 +22,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
 type Zone = { id: string; name: string; charge: number };
-type Method = { method: string; label: string; configured: boolean };
+// Only methods that are actually available come back (COD + configured
+// gateways); unconfigured gateways are hidden by the API.
+type Method = { method: string; label: string };
 
 const METHOD_META: Record<string, { sub: string; icon: typeof Banknote }> = {
   COD: { sub: "Pay when you receive", icon: Banknote },
@@ -37,7 +39,7 @@ export default function CheckoutPage() {
   const { user } = useAuth();
   const [zones, setZones] = useState<Zone[]>([]);
   const [zoneId, setZoneId] = useState("");
-  const [methods, setMethods] = useState<Method[]>([{ method: "COD", label: "Cash on Delivery", configured: true }]);
+  const [methods, setMethods] = useState<Method[]>([{ method: "COD", label: "Cash on Delivery" }]);
   const [payment, setPayment] = useState("COD");
   const [placing, setPlacing] = useState(false);
   const [form, setForm] = useState({ name: "", phone: "", email: "", address: "", district: "", notes: "" });
@@ -196,23 +198,20 @@ export default function CheckoutPage() {
               {methods.map((m) => {
                 const meta = METHOD_META[m.method] ?? { sub: "", icon: CreditCard };
                 const Icon = meta.icon;
-                const disabled = !m.configured;
                 return (
                   <button
                     key={m.method}
                     type="button"
-                    disabled={disabled}
                     onClick={() => setPayment(m.method)}
                     className={cn(
                       "flex items-center gap-3 rounded-xl border-2 px-4 py-3.5 text-left transition-all",
-                      payment === m.method ? "border-blue-600 bg-blue-50" : "border-zinc-200 hover:border-zinc-300",
-                      disabled && "cursor-not-allowed opacity-45"
+                      payment === m.method ? "border-blue-600 bg-blue-50" : "border-zinc-200 hover:border-zinc-300"
                     )}
                   >
                     <Icon className="h-5 w-5 shrink-0 text-blue-600" />
                     <span>
                       <span className="block font-semibold text-zinc-900">{m.label}</span>
-                      <span className="block text-xs text-zinc-500">{disabled ? "Not available yet" : meta.sub}</span>
+                      <span className="block text-xs text-zinc-500">{meta.sub}</span>
                     </span>
                   </button>
                 );

@@ -4,29 +4,30 @@
  * success/fail/cancel/IPN URLs with a `val_id` → we call the Validation API
  * server-side to confirm the payment (never trust the redirect alone).
  *
+ * Credentials come from the admin Settings panel (DB) via PaymentConfig.
  * Docs: https://developer.sslcommerz.com
  */
-import { env } from "../config/env";
 import type {
   InitiateContext,
   InitiateResult,
+  PaymentConfig,
   PaymentProvider,
   VerifyResult,
 } from "./PaymentProvider";
 
-const BASE =
-  env.paymentMode === "live" ? "https://securepay.sslcommerz.com" : "https://sandbox.sslcommerz.com";
+const baseFor = (cfg: PaymentConfig) =>
+  cfg.mode === "live" ? "https://securepay.sslcommerz.com" : "https://sandbox.sslcommerz.com";
 
 export class SslCommerzProvider implements PaymentProvider {
   readonly method = "SSLCOMMERZ" as const;
 
-  get configured(): boolean {
-    const c = env.payment.sslcommerz;
-    return Boolean(c.storeId && c.storePassword);
+  isConfigured(cfg: PaymentConfig): boolean {
+    const c = cfg.sslcommerz;
+    return c.enabled && Boolean(c.storeId && c.storePassword);
   }
 
-  async initiate(ctx: InitiateContext): Promise<InitiateResult> {
-    const c = env.payment.sslcommerz;
+  async initiate(ctx: InitiateContext, cfg: PaymentConfig): Promise<InitiateResult> {
+    const c = cfg.sslcommerz;
     const form = new URLSearchParams({
       store_id: c.storeId,
       store_passwd: c.storePassword,
@@ -50,7 +51,7 @@ export class SslCommerzProvider implements PaymentProvider {
       cus_country: "Bangladesh",
     });
 
-    const res = await fetch(`${BASE}/gwprocess/v4/api.php`, {
+    const res = await fetch(`${baseFor(cfg)}/gwprocess/v4/api.php`, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: form.toString(),
@@ -62,7 +63,7 @@ export class SslCommerzProvider implements PaymentProvider {
     return { redirectUrl: data.GatewayPageURL, gatewayReference: data.sessionkey, raw: data };
   }
 
-  async verify(orderNumber: string, params: Record<string, unknown>): Promise<VerifyResult> {
+  async verify(orderNumber: string, params: Record<string, unknown>, cfg: PaymentConfig): Promise<VerifyResult> {
     const valId = (params.val_id as string) || "";
     const status = (params.status as string) || "";
 
@@ -72,8 +73,8 @@ export class SslCommerzProvider implements PaymentProvider {
     }
 
     // Server-to-server validation — the authoritative source of truth.
-    const c = env.payment.sslcommerz;
-    const url = new URL(`${BASE}/validator/api/validationserverAPI.php`);
+    const c = cfg.sslcommerz;
+    const url = new URL(`${baseFor(cfg)}/validator/api/validationserverAPI.php`);
     url.searchParams.set("val_id", valId);
     url.searchParams.set("store_id", c.storeId);
     url.searchParams.set("store_passwd", c.storePassword);

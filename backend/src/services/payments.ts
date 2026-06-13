@@ -19,6 +19,7 @@ import { prisma } from "../lib/prisma";
 import { AppError, badRequest, notFound } from "../lib/errors";
 import { env } from "../config/env";
 import { getProvider } from "../payments";
+import { loadPaymentConfig } from "../payments/config";
 import type { VerifyResult } from "../payments/PaymentProvider";
 import { notifyPaymentConfirmed } from "./notifications";
 
@@ -52,16 +53,20 @@ export async function initiatePayment(orderNumber: string): Promise<{ redirectUr
 
   const provider = getProvider(order.paymentMethod);
   if (!provider) throw badRequest("Unsupported payment method");
-  if (!provider.configured) {
+  const cfg = await loadPaymentConfig();
+  if (!provider.isConfigured(cfg)) {
     throw new AppError(503, `${order.paymentMethod} is not configured yet. Please choose Cash on Delivery or contact support.`);
   }
 
-  const result = await provider.initiate({
-    orderNumber: order.orderNumber,
-    amount: Number(order.total),
-    customer: { name: order.shippingName, email: order.shippingEmail, phone: order.shippingPhone },
-    callbackBaseUrl: callbackBaseUrl(order.paymentMethod, order.orderNumber),
-  });
+  const result = await provider.initiate(
+    {
+      orderNumber: order.orderNumber,
+      amount: Number(order.total),
+      customer: { name: order.shippingName, email: order.shippingEmail, phone: order.shippingPhone },
+      callbackBaseUrl: callbackBaseUrl(order.paymentMethod, order.orderNumber),
+    },
+    cfg
+  );
 
   // Record the attempt for audit + reconciliation (stores the gateway ref).
   await prisma.paymentTransaction.create({
@@ -117,7 +122,8 @@ export async function verifyAndSettle(
   if (!provider) throw badRequest("Unsupported payment method");
 
   // Server-to-server verification, bound to THIS order inside the provider.
-  const verified = await provider.verify(orderNumber, params);
+  const cfg = await loadPaymentConfig();
+  const verified = await provider.verify(orderNumber, params, cfg);
 
   // Persist every verification attempt for audit.
   await prisma.paymentTransaction.create({
@@ -191,12 +197,14 @@ export async function reconcilePendingPayments(): Promise<{ checked: number; set
     include: { transactions: { where: { status: "INITIATED" }, orderBy: { createdAt: "desc" }, take: 1 } },
   });
 
+  if (!orders.length) return { checked: 0, settled: 0 };
+  const cfg = await loadPaymentConfig();
   let settled = 0;
   for (const order of orders) {
     const ref = order.transactions[0]?.gatewayTransactionId;
     if (!ref) continue;
     const provider = getProvider(order.paymentMethod);
-    if (!provider?.configured) continue;
+    if (!provider?.isConfigured(cfg)) continue;
     // Synthesize the callback params the gateway would have sent.
     const params =
       order.paymentMethod === "BKASH"

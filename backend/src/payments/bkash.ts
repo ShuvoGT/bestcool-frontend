@@ -1,24 +1,25 @@
 /**
  * bKash Tokenized Checkout / PGW (spec §5).
  * Flow:
- *   1. grantToken()  — auth, cached until near expiry
+ *   1. grantToken()  — auth, cached per app key until near expiry
  *   2. createPayment() in initiate() — returns bkashURL to redirect to
  *   3. customer pays; bKash redirects to our callback with ?paymentID&status
  *   4. verify() → executePayment() (settles the txn) then trusts only a
  *      "Completed" transactionStatus. queryPayment() is the fallback check.
  *
+ * Credentials come from the admin Settings panel (DB) via PaymentConfig.
  * Docs: https://developer.bka.sh — Tokenized Checkout v1.2.0-beta
  */
-import { env } from "../config/env";
 import type {
   InitiateContext,
   InitiateResult,
+  PaymentConfig,
   PaymentProvider,
   VerifyResult,
 } from "./PaymentProvider";
 
-const BASE =
-  env.paymentMode === "live"
+const baseFor = (cfg: PaymentConfig) =>
+  cfg.mode === "live"
     ? "https://tokenized.pay.bka.sh/v1.2.0-beta/tokenized/checkout"
     : "https://tokenized.sandbox.bka.sh/v1.2.0-beta/tokenized/checkout";
 
@@ -26,18 +27,20 @@ type TokenCache = { idToken: string; expiresAt: number };
 
 export class BkashProvider implements PaymentProvider {
   readonly method = "BKASH" as const;
-  private token: TokenCache | null = null;
+  // Cache keyed by app key so changing credentials in admin invalidates it.
+  private tokens = new Map<string, TokenCache>();
 
-  get configured(): boolean {
-    const c = env.payment.bkash;
-    return Boolean(c.appKey && c.appSecret && c.username && c.password);
+  isConfigured(cfg: PaymentConfig): boolean {
+    const c = cfg.bkash;
+    return c.enabled && Boolean(c.appKey && c.appSecret && c.username && c.password);
   }
 
   /** Grant (and cache) an id_token. bKash tokens last ~1h; refresh early. */
-  private async grantToken(): Promise<string> {
-    if (this.token && this.token.expiresAt > Date.now() + 60_000) return this.token.idToken;
-    const c = env.payment.bkash;
-    const res = await fetch(`${BASE}/token/grant`, {
+  private async grantToken(cfg: PaymentConfig): Promise<string> {
+    const c = cfg.bkash;
+    const cached = this.tokens.get(c.appKey);
+    if (cached && cached.expiresAt > Date.now() + 60_000) return cached.idToken;
+    const res = await fetch(`${baseFor(cfg)}/token/grant`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -49,23 +52,23 @@ export class BkashProvider implements PaymentProvider {
     });
     const data = (await res.json()) as { id_token?: string; expires_in?: number; statusMessage?: string };
     if (!data.id_token) throw new Error(`bKash grant token failed: ${data.statusMessage || "no token"}`);
-    this.token = { idToken: data.id_token, expiresAt: Date.now() + (data.expires_in ?? 3600) * 1000 };
+    this.tokens.set(c.appKey, { idToken: data.id_token, expiresAt: Date.now() + (data.expires_in ?? 3600) * 1000 });
     return data.id_token;
   }
 
-  private async authHeaders() {
+  private async authHeaders(cfg: PaymentConfig) {
     return {
       "Content-Type": "application/json",
       Accept: "application/json",
-      authorization: await this.grantToken(),
-      "x-app-key": env.payment.bkash.appKey,
+      authorization: await this.grantToken(cfg),
+      "x-app-key": cfg.bkash.appKey,
     };
   }
 
-  async initiate(ctx: InitiateContext): Promise<InitiateResult> {
-    const res = await fetch(`${BASE}/create`, {
+  async initiate(ctx: InitiateContext, cfg: PaymentConfig): Promise<InitiateResult> {
+    const res = await fetch(`${baseFor(cfg)}/create`, {
       method: "POST",
-      headers: await this.authHeaders(),
+      headers: await this.authHeaders(cfg),
       body: JSON.stringify({
         mode: "0011", // tokenized checkout (URL based)
         payerReference: ctx.customer.phone || ctx.orderNumber,
@@ -83,7 +86,7 @@ export class BkashProvider implements PaymentProvider {
     return { redirectUrl: data.bkashURL, gatewayReference: data.paymentID, raw: data };
   }
 
-  async verify(orderNumber: string, params: Record<string, unknown>): Promise<VerifyResult> {
+  async verify(orderNumber: string, params: Record<string, unknown>, cfg: PaymentConfig): Promise<VerifyResult> {
     const paymentID = (params.paymentID as string) || "";
     const status = ((params.status as string) || "").toLowerCase();
 
@@ -93,9 +96,9 @@ export class BkashProvider implements PaymentProvider {
 
     // Settle the transaction server-side with execute; fall back to query when
     // execute was already run (duplicate callback + IPN, or reconciliation).
-    let exec = await this.execute(paymentID);
+    let exec = await this.execute(paymentID, cfg);
     if (exec.transactionStatus !== "Completed") {
-      exec = await this.query(paymentID);
+      exec = await this.query(paymentID, cfg);
     }
 
     if (exec.transactionStatus === "Completed") {
@@ -112,19 +115,19 @@ export class BkashProvider implements PaymentProvider {
     return { outcome: exec.transactionStatus ? "FAILED" : "PENDING", gatewayTransactionId: exec.trxID, raw: exec };
   }
 
-  private async execute(paymentID: string) {
-    const res = await fetch(`${BASE}/execute`, {
+  private async execute(paymentID: string, cfg: PaymentConfig) {
+    const res = await fetch(`${baseFor(cfg)}/execute`, {
       method: "POST",
-      headers: await this.authHeaders(),
+      headers: await this.authHeaders(cfg),
       body: JSON.stringify({ paymentID }),
     });
     return (await res.json()) as { transactionStatus?: string; trxID?: string; amount?: string; merchantInvoiceNumber?: string; statusMessage?: string };
   }
 
-  private async query(paymentID: string) {
-    const res = await fetch(`${BASE}/payment/status`, {
+  private async query(paymentID: string, cfg: PaymentConfig) {
+    const res = await fetch(`${baseFor(cfg)}/payment/status`, {
       method: "POST",
-      headers: await this.authHeaders(),
+      headers: await this.authHeaders(cfg),
       body: JSON.stringify({ paymentID }),
     });
     return (await res.json()) as { transactionStatus?: string; trxID?: string; amount?: string; merchantInvoiceNumber?: string };
