@@ -23,7 +23,10 @@ const nextConfig: NextConfig = {
       // Seed/demo placeholder images
       { protocol: "https", hostname: "placehold.co" },
       { protocol: "https", hostname: "picsum.photos" },
-      // Uploaded product images from the API (dev localhost + production host)
+      // Uploaded product images stored on Cloudinary (production)
+      { protocol: "https", hostname: "res.cloudinary.com", pathname: "/**" },
+      // Uploaded product images from the API /uploads folder (local-disk storage:
+      // dev localhost + any production host derived from NEXT_PUBLIC_API_URL)
       { protocol: "http", hostname: "localhost", port: "5000", pathname: "/uploads/**" },
       ...(apiImagePattern ? [apiImagePattern] : []),
     ],
