@@ -133,6 +133,26 @@ function Block({ block }: { block: CmsBlock }) {
       );
     }
 
+    case "CATEGORY_PRODUCTS": {
+      const products = (block.data?.products ?? []) as ProductCardData[];
+      const category = block.data?.category as { id: string; name: string; slug: string } | null;
+      if (!products.length) return null;
+      // Heading defaults to the category name; "View all" deep-links to it.
+      const heading = (c.heading as string) || category?.name || "Products";
+      return (
+        <section className={cn(wrap, "py-9")}>
+          <SectionHeading heading={heading} subheading={c.subheading as string} viewAll={category ? `/shop?category=${category.slug}` : "/shop"} />
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-4">
+            {products.map((p, i) => (
+              <Reveal key={p.id} delay={(i % 4) * 70}>
+                <ProductCard product={p} />
+              </Reveal>
+            ))}
+          </div>
+        </section>
+      );
+    }
+
     case "FEATURED_CATEGORIES": {
       const categories = (block.data?.categories ?? []) as { id: string; name: string; slug: string; image: string | null; productCount: number }[];
       if (!categories.length) return null;

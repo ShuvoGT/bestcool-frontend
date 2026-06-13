@@ -266,11 +266,11 @@ function BlockEditorLoader(props: {
   onChange: (c: Record<string, any>) => void;
 }) {
   const { data } = useLoad(async () => {
-    const needsProducts = props.type === "FEATURED_PRODUCTS";
-    const needsCategories = props.type === "FEATURED_CATEGORIES";
+    const needsProducts = props.type === "FEATURED_PRODUCTS" || props.type === "CATEGORY_PRODUCTS";
+    const needsCategories = props.type === "FEATURED_CATEGORIES" || props.type === "CATEGORY_PRODUCTS";
     const [products, categories] = await Promise.all([
       needsProducts
-        ? api<{ items: { id: string; name: string }[] }>("/admin/products", { query: { limit: 100 } }).then((r) => r.items)
+        ? api<{ items: { id: string; name: string; image: string | null; category: { id: string } | null }[] }>("/admin/products", { query: { limit: 100 } }).then((r) => r.items)
         : Promise.resolve([]),
       needsCategories
         ? api<{ categories: { id: string; name: string }[] }>("/categories").then((r) => r.categories)

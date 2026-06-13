@@ -69,6 +69,33 @@ export async function enrichBlocks(blocks: PageBlock[]) {
           const ids = ((block.content as any)?.productIds as string[]) ?? [];
           return { ...base, data: { products: await loadProductCards(ids) } };
         }
+        case "CATEGORY_PRODUCTS": {
+          // A category-scoped, admin-orderable product row. If the admin curated
+          // a manual order (productIds), use it; otherwise auto-fill from the
+          // category (newest-selling first), limited.
+          const content = (block.content as any) ?? {};
+          const categoryId = content.categoryId as string | undefined;
+          const manualIds = (content.productIds as string[]) ?? [];
+          const limit = Math.min(Number(content.limit) || 12, 24);
+
+          let products: unknown[] = [];
+          if (manualIds.length) {
+            products = (await loadProductCards(manualIds)).slice(0, limit);
+          } else if (categoryId) {
+            const list = await prisma.product.findMany({
+              where: { categoryId, isActive: true },
+              orderBy: { soldCount: "desc" },
+              take: limit,
+              include: productInclude,
+            });
+            const flashMap = await getRunningFlashMap(list.map((p) => p.id));
+            products = list.map((p) => serializeProductCard(p, flashMap.get(p.id)));
+          }
+          const category = categoryId
+            ? await prisma.category.findUnique({ where: { id: categoryId }, select: { id: true, name: true, slug: true } })
+            : null;
+          return { ...base, data: { products, category } };
+        }
         case "FEATURED_CATEGORIES": {
           const ids = ((block.content as any)?.categoryIds as string[]) ?? [];
           const categories = await prisma.category.findMany({
