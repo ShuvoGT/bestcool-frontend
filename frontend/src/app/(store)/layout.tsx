@@ -1,21 +1,25 @@
-import { getSettings } from "@/lib/server-api";
+import { getSettings, getCategories } from "@/lib/server-api";
 import { AuthProvider } from "@/lib/auth";
 import { StoreProvider } from "@/lib/store";
 import { Header } from "@/components/store/Header";
 import { Footer } from "@/components/store/Footer";
+import { MobileBottomNav } from "@/components/store/MobileBottomNav";
 import { WhatsAppButton, ChatEmbed } from "@/components/store/FloatingWidgets";
 import { Toaster } from "@/components/ui/sonner";
 
 export default async function StoreLayout({ children }: { children: React.ReactNode }) {
-  const settings = await getSettings();
+  // Settings (menu, branding) + product categories both come from the backend,
+  // so the header's nav and "Top Categories" list are fully admin-managed.
+  const [settings, categories] = await Promise.all([getSettings(), getCategories()]);
 
   return (
     <AuthProvider>
     <StoreProvider>
       <div className="flex min-h-screen flex-col bg-white text-zinc-900">
-        <Header settings={settings} />
-        <main className="flex-1">{children}</main>
+        <Header settings={settings} categories={categories} />
+        <main className="flex-1 pb-16 lg:pb-0">{children}</main>
         <Footer settings={settings} />
+        <MobileBottomNav />
         <WhatsAppButton number={settings["whatsapp.number"] ?? null} message={settings["whatsapp.message"] ?? null} />
         <ChatEmbed code={settings["chat.embedCode"] ?? null} />
         <Toaster position="bottom-center" richColors />

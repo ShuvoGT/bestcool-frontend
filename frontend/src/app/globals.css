@@ -58,12 +58,12 @@
 :root {
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
-  /* Brand orange + deep ink for the storefront */
-  --brand: #f2641e;
-  --brand-dark: #d9530f;
-  --brand-soft: #fff2ea;
+  /* Brand slate-blue + deep ink for the storefront */
+  --brand: #566590;
+  --brand-dark: #45517a;
+  --brand-soft: #eceff6;
   --brand-foreground: #ffffff;
-  --ink: #1a2230;
+  --ink: #1b2233;
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
