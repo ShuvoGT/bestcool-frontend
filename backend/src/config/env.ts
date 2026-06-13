@@ -30,6 +30,16 @@ export const env = {
     senderId: process.env.SMS_SENDER_ID || "",
   },
 
+  // --- Storage ---
+  // When cloudName is set, uploads go to Cloudinary (required on hosts with an
+  // ephemeral filesystem like Render); otherwise files are stored on local disk.
+  cloudinary: {
+    cloudName: process.env.CLOUDINARY_CLOUD_NAME || "",
+    apiKey: process.env.CLOUDINARY_API_KEY || "",
+    apiSecret: process.env.CLOUDINARY_API_SECRET || "",
+    folder: process.env.CLOUDINARY_FOLDER || "bestcool",
+  },
+
   // --- Payments ---
   // sandbox | live — selects each gateway's base URL (validated below).
   paymentMode: ((process.env.PAYMENT_MODE || "sandbox").trim().toLowerCase()) as "sandbox" | "live",
