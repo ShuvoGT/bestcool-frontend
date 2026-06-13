@@ -18,12 +18,18 @@ const credentialsShape = {
   password: z.string().min(8, "Password must be at least 8 characters").max(100),
 };
 
-const publicUser = (u: { id: string; name: string; email: string; phone: string | null; role: string; mustChangePassword: boolean }) => ({
+const publicUser = (u: {
+  id: string; name: string; email: string; username?: string | null; phone: string | null;
+  role: string; permissions?: string[]; isActive?: boolean; mustChangePassword: boolean;
+}) => ({
   id: u.id,
   name: u.name,
   email: u.email,
+  username: u.username ?? null,
   phone: u.phone,
   role: u.role,
+  permissions: u.permissions ?? [],
+  isActive: u.isActive ?? true,
   mustChangePassword: u.mustChangePassword,
 });
 
@@ -54,12 +60,18 @@ authRouter.post(
 authRouter.post(
   "/login",
   authLimiter,
-  validate({ body: z.object({ email: credentialsShape.email, password: z.string().min(1) }) }),
+  // Accept an email OR a username in the `email` field (WordPress-style login).
+  validate({ body: z.object({ email: z.string().min(1).max(100), password: z.string().min(1) }) }),
   asyncHandler(async (req, res) => {
-    const { email, password } = req.body;
-    const user = await prisma.user.findUnique({ where: { email } });
-    if (!user || !(await bcrypt.compare(password, user.password))) {
-      throw unauthorized("Invalid email or password");
+    const identifier = (req.body.email as string).trim().toLowerCase();
+    const user = await prisma.user.findFirst({
+      where: { OR: [{ email: identifier }, { username: identifier }] },
+    });
+    if (!user || !(await bcrypt.compare(req.body.password, user.password))) {
+      throw unauthorized("Invalid credentials");
+    }
+    if (user.role !== "CUSTOMER" && !user.isActive) {
+      throw unauthorized("Your account has been deactivated. Contact an administrator.");
     }
     setAuthCookie(res, signToken({ sub: user.id, role: user.role }));
     res.json({ user: publicUser(user) });
@@ -79,12 +91,28 @@ authRouter.get("/me", requireAuth, (req, res) => {
 authRouter.put(
   "/profile",
   requireAuth,
-  validate({ body: z.object({ name: z.string().min(2).max(100), phone: z.string().min(11).max(15).nullable().optional() }) }),
+  validate({
+    body: z.object({
+      name: z.string().min(2).max(100),
+      // Optional handle: a valid username, "" to clear it, or omit to leave unchanged.
+      username: z.string().trim().min(3).max(30).regex(/^[a-zA-Z0-9_.]+$/, "Letters, numbers, dot and underscore only").optional().or(z.literal("")),
+      phone: z.string().min(11).max(15).nullable().optional(),
+    }),
+  }),
   asyncHandler(async (req, res) => {
-    const user = await prisma.user.update({
-      where: { id: req.user!.id },
-      data: { name: req.body.name, phone: req.body.phone ?? undefined },
-    });
+    const data: Parameters<typeof prisma.user.update>[0]["data"] = {
+      name: req.body.name,
+      phone: req.body.phone ?? undefined,
+    };
+    if (req.body.username !== undefined) {
+      const lower = req.body.username ? (req.body.username as string).toLowerCase() : null;
+      if (lower) {
+        const taken = await prisma.user.findFirst({ where: { username: lower, id: { not: req.user!.id } } });
+        if (taken) throw conflict("This username is already taken");
+      }
+      data.username = lower;
+    }
+    const user = await prisma.user.update({ where: { id: req.user!.id }, data });
     res.json({ user: publicUser(user) });
   })
 );

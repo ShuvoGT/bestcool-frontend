@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import type { Response } from "express";
 import { env } from "../config/env";
 
-export type JwtPayload = { sub: string; role: "ADMIN" | "CUSTOMER" };
+export type JwtPayload = { sub: string; role: "ADMIN" | "STAFF" | "CUSTOMER" };
 
 export function signToken(payload: JwtPayload): string {
   return jwt.sign(payload, env.jwtSecret, { expiresIn: env.jwtExpiresIn } as jwt.SignOptions);

@@ -21,7 +21,7 @@ export default function AdminLoginPage() {
     setError(null);
     try {
       const res = await api<{ user: { role: string } }>("/auth/login", { method: "POST", body: { email, password } });
-      if (res.user.role !== "ADMIN") {
+      if (res.user.role === "CUSTOMER") {
         await api("/auth/logout", { method: "POST" });
         throw new Error("This account does not have admin access");
       }
@@ -57,10 +57,10 @@ export default function AdminLoginPage() {
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-zinc-300">Email</Label>
+            <Label htmlFor="email" className="text-zinc-300">Email or username</Label>
             <Input
               id="email"
-              type="email"
+              type="text"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}

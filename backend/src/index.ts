@@ -10,7 +10,7 @@ import cookieParser from "cookie-parser";
 import path from "path";
 import { env } from "./config/env";
 import { prisma } from "./lib/prisma";
-import { attachUser, requireAdmin } from "./middleware/auth";
+import { attachUser, requireAdmin, requireStaff, requirePermission } from "./middleware/auth";
 import { errorHandler, notFoundHandler } from "./middleware/error";
 
 import { authRouter } from "./routes/auth";
@@ -28,6 +28,7 @@ import { adminFlashSalesRouter } from "./routes/admin/flashSales";
 import { adminOrdersRouter, adminCustomersRouter, adminDashboardRouter } from "./routes/admin/orders";
 import { adminSettingsRouter, adminDeliveryZonesRouter } from "./routes/admin/settings";
 import { adminCouriersRouter } from "./routes/admin/couriers";
+import { adminUsersRouter } from "./routes/admin/users";
 
 const app = express();
 
@@ -70,19 +71,22 @@ app.use("/api/orders", ordersRouter);
 app.use("/api/payments", paymentsRouter);
 app.use("/api/couriers", couriersRouter);
 
-// --- Admin API (role-gated) ---------------------------------------------------
-app.use("/api/admin", requireAdmin);
-app.use("/api/admin/products", adminProductsRouter);
-app.use("/api/admin/categories", adminCategoriesRouter);
-app.use("/api/admin/uploads", adminUploadsRouter);
-app.use("/api/admin/pages", adminPagesRouter);
-app.use("/api/admin/flash-sales", adminFlashSalesRouter);
-app.use("/api/admin/orders", adminOrdersRouter);
-app.use("/api/admin/customers", adminCustomersRouter);
-app.use("/api/admin/dashboard", adminDashboardRouter);
-app.use("/api/admin/settings", adminSettingsRouter);
-app.use("/api/admin/delivery-zones", adminDeliveryZonesRouter);
-app.use("/api/admin/couriers", adminCouriersRouter);
+// --- Admin API ----------------------------------------------------------------
+// Any active ADMIN/STAFF user reaches the panel; each section is then gated by a
+// capability (ADMIN implicitly has all). User management is ADMIN-only.
+app.use("/api/admin", requireStaff);
+app.use("/api/admin/dashboard", adminDashboardRouter); // all staff (landing page)
+app.use("/api/admin/products", requirePermission("products"), adminProductsRouter);
+app.use("/api/admin/categories", requirePermission("products"), adminCategoriesRouter);
+app.use("/api/admin/uploads", requirePermission("products", "content"), adminUploadsRouter);
+app.use("/api/admin/pages", requirePermission("content"), adminPagesRouter);
+app.use("/api/admin/flash-sales", requirePermission("flashSales"), adminFlashSalesRouter);
+app.use("/api/admin/orders", requirePermission("orders"), adminOrdersRouter);
+app.use("/api/admin/customers", requirePermission("customers"), adminCustomersRouter);
+app.use("/api/admin/settings", requirePermission("settings"), adminSettingsRouter);
+app.use("/api/admin/delivery-zones", requirePermission("deliveryZones"), adminDeliveryZonesRouter);
+app.use("/api/admin/couriers", requirePermission("couriers"), adminCouriersRouter);
+app.use("/api/admin/users", requireAdmin, adminUsersRouter);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

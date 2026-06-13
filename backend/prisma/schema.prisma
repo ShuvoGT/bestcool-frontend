@@ -18,6 +18,7 @@ datasource db {
 
 enum Role {
   ADMIN
+  STAFF
   CUSTOMER
 }
 
@@ -82,9 +83,18 @@ model User {
   id                 String    @id @default(cuid())
   name               String
   email              String    @unique
+  // Optional WordPress-style login/display handle for staff & admins.
+  username           String?   @unique
   phone              String?
   password           String // bcrypt hash
   role               Role      @default(CUSTOMER)
+  // For STAFF users: the capability keys they may access (see lib/permissions).
+  // ADMIN implicitly has all; CUSTOMER has none.
+  permissions        String[]  @default([])
+  // Display label of the chosen role preset, e.g. "store_manager", "editor".
+  staffRole          String?
+  // Deactivated staff keep their data but can no longer sign in to /admin.
+  isActive           Boolean   @default(true)
   // Set true for auto-created guest-checkout accounts; forces a password
   // change on first login (spec §6).
   mustChangePassword Boolean   @default(false)

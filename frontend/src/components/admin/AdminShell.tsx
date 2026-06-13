@@ -1,34 +1,49 @@
 "use client";
 
 /**
- * Admin shell: auth guard (ADMIN only) + futuristic sidebar/topbar chrome.
- * The real security boundary is the API (role-gated JWT); this guard is UX.
+ * Admin shell: auth guard (ADMIN or STAFF) + futuristic sidebar/topbar chrome.
+ * The real security boundary is the API (role + permission gated JWT); this
+ * guard is UX. Sidebar items are filtered by the user's capabilities.
  */
 import { createContext, useContext, useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, FileText, Package, Tags, ShoppingCart, Users, Zap,
-  Settings, LogOut, Loader2, ExternalLink,
+  Settings, Shield, UserCircle, LogOut, Loader2, ExternalLink, type LucideIcon,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
 
-type AdminUser = { id: string; name: string; email: string; role: string };
+export type AdminUser = {
+  id: string; name: string; email: string; username?: string | null;
+  role: string; permissions?: string[];
+};
 const AdminUserContext = createContext<AdminUser | null>(null);
 export const useAdminUser = () => useContext(AdminUserContext);
 
-const NAV = [
-  { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
-  { href: "/admin/pages", label: "Pages", icon: FileText },
-  { href: "/admin/products", label: "Products", icon: Package },
-  { href: "/admin/categories", label: "Categories", icon: Tags },
-  { href: "/admin/orders", label: "Orders", icon: ShoppingCart },
-  { href: "/admin/customers", label: "Customers", icon: Users },
-  { href: "/admin/flash-sales", label: "Flash Sales", icon: Zap },
-  { href: "/admin/settings", label: "Settings", icon: Settings },
+// `perm` gates visibility: null = everyone, "__admin__" = ADMIN only, else a
+// capability key (ADMIN implicitly has all).
+type NavItem = { href: string; label: string; icon: LucideIcon; exact?: boolean; perm: string | null };
+const NAV: NavItem[] = [
+  { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true, perm: null },
+  { href: "/admin/pages", label: "Pages", icon: FileText, perm: "content" },
+  { href: "/admin/products", label: "Products", icon: Package, perm: "products" },
+  { href: "/admin/categories", label: "Categories", icon: Tags, perm: "products" },
+  { href: "/admin/orders", label: "Orders", icon: ShoppingCart, perm: "orders" },
+  { href: "/admin/customers", label: "Customers", icon: Users, perm: "customers" },
+  { href: "/admin/flash-sales", label: "Flash Sales", icon: Zap, perm: "flashSales" },
+  { href: "/admin/users", label: "Users", icon: Shield, perm: "__admin__" },
+  { href: "/admin/settings", label: "Settings", icon: Settings, perm: "settings" },
 ];
+
+function canSee(user: AdminUser, perm: string | null): boolean {
+  if (!perm) return true;
+  if (perm === "__admin__") return user.role === "ADMIN";
+  if (user.role === "ADMIN") return true;
+  return (user.permissions ?? []).includes(perm);
+}
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -39,7 +54,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     api<{ user: AdminUser }>("/auth/me")
       .then((res) => {
-        if (res.user.role !== "ADMIN") throw new Error("not admin");
+        if (res.user.role === "CUSTOMER") throw new Error("not staff");
         setUser(res.user);
         setChecking(false);
       })
@@ -58,6 +73,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       </div>
     );
   }
+
+  const nav = NAV.filter((n) => canSee(user, n.perm));
 
   return (
     <AdminUserContext.Provider value={user}>
@@ -81,7 +98,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </div>
 
           <nav className="mt-2 flex-1 space-y-1 px-3">
-            {NAV.map(({ href, label, icon: Icon, exact }) => {
+            {nav.map(({ href, label, icon: Icon, exact }) => {
               const active = exact ? pathname === href : pathname.startsWith(href);
               return (
                 <Link
@@ -103,6 +120,15 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </nav>
 
           <div className="border-t border-white/8 p-3">
+            <Link
+              href="/admin/profile"
+              className={cn(
+                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+                pathname === "/admin/profile" ? "bg-white/5 text-cyan-300" : "text-zinc-400 hover:bg-white/5 hover:text-zinc-100"
+              )}
+            >
+              <UserCircle className="h-4 w-4" /> My profile
+            </Link>
             <a
               href="/"
               target="_blank"
@@ -116,7 +142,12 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             >
               <LogOut className="h-4 w-4" /> Sign out
             </button>
-            <div className="mt-2 truncate px-3 text-xs text-zinc-600">{user.email}</div>
+            <div className="mt-2 px-3">
+              <div className="truncate text-xs font-medium text-zinc-300">{user.name}</div>
+              <div className="truncate text-[11px] text-zinc-600">
+                {user.role === "ADMIN" ? "Administrator" : "Staff"} · {user.email}
+              </div>
+            </div>
           </div>
         </aside>
 
@@ -126,7 +157,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           <button onClick={logout} className="text-sm text-zinc-400">Sign out</button>
         </header>
         <nav className="sticky top-12 z-20 flex gap-1 overflow-x-auto border-b border-white/8 bg-zinc-950/80 px-2 py-2 backdrop-blur-xl lg:hidden">
-          {NAV.map(({ href, label, exact }) => {
+          {nav.map(({ href, label, exact }) => {
             const active = exact ? pathname === href : pathname.startsWith(href);
             return (
               <Link
@@ -141,6 +172,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               </Link>
             );
           })}
+          <Link href="/admin/profile" className={cn("whitespace-nowrap rounded-md px-3 py-1.5 text-xs font-medium", pathname === "/admin/profile" ? "bg-cyan-500/15 text-cyan-300" : "text-zinc-400")}>
+            Profile
+          </Link>
         </nav>
 
         <main className="relative px-4 py-6 sm:px-6 lg:ml-60 lg:px-8">{children}</main>
