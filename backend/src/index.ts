@@ -35,7 +35,8 @@ const app = express();
 // IPs (rate limiting) and the HTTPS protocol are detected correctly.
 if (env.isProd) app.set("trust proxy", 1);
 
-app.use(cors({ origin: env.frontendUrl, credentials: true }));
+// Allow every origin listed in FRONTEND_URL (custom domain + *.vercel.app, etc.).
+app.use(cors({ origin: env.frontendUrls, credentials: true }));
 app.use(express.json({ limit: "2mb" }));
 // Payment gateways POST callbacks/IPN as application/x-www-form-urlencoded.
 app.use(express.urlencoded({ extended: true, limit: "2mb" }));
