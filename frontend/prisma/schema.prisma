@@ -5,6 +5,10 @@
 
 generator client {
   provider = "prisma-client-js"
+  // Build happens on Windows ("native") but Hostinger runs Linux, so bundle the
+  // Linux query engines too — otherwise Prisma can't start in production. Modern
+  // Hostinger is OpenSSL 3.0 (debian); 1.1.x included as a fallback for older hosts.
+  binaryTargets = ["native", "debian-openssl-3.0.x", "debian-openssl-1.1.x"]
 }
 
 datasource db {

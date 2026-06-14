@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import path from "node:path";
 
 // Allow product images served from the API's /uploads folder, in dev and in
 // production. The production host is derived from NEXT_PUBLIC_API_URL so the
@@ -18,6 +19,14 @@ try {
 }
 
 const nextConfig: NextConfig = {
+  // Self-host build: emits a lean .next/standalone/server.js that Hostinger's
+  // Node.js app (Phusion Passenger) runs directly. Build locally, then upload
+  // .next/standalone + .next/static + public (see DEPLOY-HOSTINGER.md).
+  output: "standalone",
+  // The repo also contains ../backend, so Next would otherwise trace the monorepo
+  // root and nest the standalone output under the full path. Pin the trace root to
+  // this frontend project so server.js lands cleanly at .next/standalone/server.js.
+  outputFileTracingRoot: path.resolve(),
   images: {
     remotePatterns: [
       // Seed/demo placeholder images
