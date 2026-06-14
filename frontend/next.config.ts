@@ -23,6 +23,8 @@ const nextConfig: NextConfig = {
   // Node.js app (Phusion Passenger) runs directly. Build locally, then upload
   // .next/standalone + .next/static + public (see DEPLOY-HOSTINGER.md).
   output: "standalone",
+  // Don't let lint fail the platform build (we lint locally). Type errors still fail.
+  eslint: { ignoreDuringBuilds: true },
   // The repo also contains ../backend, so Next would otherwise trace the monorepo
   // root and nest the standalone output under the full path. Pin the trace root to
   // this frontend project so server.js lands cleanly at .next/standalone/server.js.
