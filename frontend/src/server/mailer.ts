@@ -9,3 +9,8 @@
 export async function sendMail(to: string, subject: string, html: string): Promise<void> {
   console.log(`[mailer:stub] → ${to} | ${subject}\n${html}`);
 }
+
+/** Used by Admin → Settings → Email "send test". Step 6 makes this real. */
+export async function sendTestEmail(_to: string): Promise<void> {
+  throw new Error("Email sending is not wired up yet (consolidation step 6).");
+}

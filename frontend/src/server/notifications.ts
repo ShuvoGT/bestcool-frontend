@@ -8,3 +8,11 @@
 export async function notifyOrderPlaced(orderId: string, tempPassword: string | null): Promise<void> {
   console.log(`[notifications:stub] order placed ${orderId}${tempPassword ? " (auto-account created)" : ""}`);
 }
+
+export async function notifyStatusChange(orderId: string, status: string): Promise<void> {
+  console.log(`[notifications:stub] order ${orderId} → status ${status}`);
+}
+
+export async function notifyPaymentConfirmed(orderId: string): Promise<void> {
+  console.log(`[notifications:stub] order ${orderId} payment confirmed`);
+}

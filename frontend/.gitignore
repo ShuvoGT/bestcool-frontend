@@ -20,6 +20,9 @@
 # production
 /build
 
+# runtime user uploads (local-disk storage provider)
+/public/uploads/
+
 # misc
 .DS_Store
 *.pem

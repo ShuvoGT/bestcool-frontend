@@ -27,3 +27,11 @@ export function verifyPaymentToken(orderNumber: string, token: string): boolean 
 export async function initiatePayment(_orderNumber: string): Promise<never> {
   throw new AppError(501, "Online payments are not configured yet — use Cash on Delivery.");
 }
+
+/**
+ * Reconciliation sweep for bKash/Nagad orders whose browser redirect never
+ * landed. Step 7 ports the real logic; until then there's nothing to settle.
+ */
+export async function reconcilePendingPayments(): Promise<{ checked: number; settled: number }> {
+  return { checked: 0, settled: 0 };
+}
