@@ -40,6 +40,8 @@ export default function AdminSettingsPage() {
   );
   const [saving, setSaving] = useState(false);
   const [newZone, setNewZone] = useState<{ name: string; charge: number | "" }>({ name: "", charge: "" });
+  const [testTo, setTestTo] = useState("");
+  const [testing, setTesting] = useState(false);
 
   if (loading || !settings) return <Spinner />;
 
@@ -55,6 +57,20 @@ export default function AdminSettingsPage() {
       toast.error(e instanceof Error ? e.message : "Save failed");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function sendTest() {
+    const to = testTo.trim();
+    if (!to) return toast.error("Enter a recipient email to test");
+    setTesting(true);
+    try {
+      await api("/admin/settings/email/test", { method: "POST", body: { to } });
+      toast.success(`Test email sent to ${to} — check the inbox (and spam)`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Test failed");
+    } finally {
+      setTesting(false);
     }
   }
 
@@ -106,6 +122,10 @@ export default function AdminSettingsPage() {
   const pathao = get<Gw>("courier.pathao", {});
   const redx = get<Gw>("courier.redx", {});
 
+  // SMTP / email-sending credentials (managed here, never exposed to storefront).
+  const smtp = get<Gw>("email.smtp", {});
+  const smtpField = (field: string, value: string | boolean) => set("email.smtp", { ...smtp, [field]: value });
+
   const tabCls = "data-[state=active]:bg-cyan-500/15 data-[state=active]:text-cyan-300 text-zinc-400";
 
   return (
@@ -127,6 +147,7 @@ export default function AdminSettingsPage() {
           <TabsTrigger value="integrations" className={tabCls}>Integrations</TabsTrigger>
           <TabsTrigger value="payments" className={tabCls}>Payments</TabsTrigger>
           <TabsTrigger value="couriers" className={tabCls}>Couriers</TabsTrigger>
+          <TabsTrigger value="email" className={tabCls}>Email</TabsTrigger>
           <TabsTrigger value="sms" className={tabCls}>SMS</TabsTrigger>
           <TabsTrigger value="delivery" className={tabCls}>Delivery</TabsTrigger>
         </TabsList>
@@ -426,6 +447,47 @@ export default function AdminSettingsPage() {
             <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-400">RedX</h2>
             <SwitchField label="Enable RedX" checked={redx.enabled !== false} onChange={(v) => set("courier.redx", { ...redx, enabled: v })} />
             <TextField label="API Access Token" value={String(redx.apiToken ?? "")} onChange={(v) => gwField("courier.redx", redx, "apiToken", v)} />
+          </GlassCard>
+        </TabsContent>
+
+        {/* Email */}
+        <TabsContent value="email" className="space-y-6">
+          <GlassCard className="space-y-4 p-5">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-400">Email Sending (SMTP)</h2>
+            <p className="text-xs text-zinc-500">
+              Used for order-confirmation emails and the auto-created account credentials sent to
+              customers after checkout. For a Gmail account use host <span className="text-zinc-300">smtp.gmail.com</span>,
+              port <span className="text-zinc-300">587</span>, your Gmail address as the username, and a
+              16-character <span className="text-zinc-300">App Password</span> (Google Account → Security →
+              2-Step Verification → App passwords) — not your normal password. These are admin-only and never sent to the storefront.
+            </p>
+            <SwitchField label="Enable email sending" checked={smtp.enabled !== false} onChange={(v) => set("email.smtp", { ...smtp, enabled: v })} />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <TextField label="SMTP host" value={String(smtp.host ?? "")} onChange={(v) => smtpField("host", v)} placeholder="smtp.gmail.com" />
+              <TextField label="Port" value={String(smtp.port ?? "")} onChange={(v) => smtpField("port", v)} placeholder="587" />
+            </div>
+            <SwitchField label="Use SSL (port 465). Leave off for port 587 / Gmail." checked={smtp.secure === true} onChange={(v) => smtpField("secure", v)} />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <TextField label="Username (sender email)" value={String(smtp.user ?? "")} onChange={(v) => smtpField("user", v)} placeholder="you@gmail.com" />
+              <TextField label="App password" value={String(smtp.pass ?? "")} onChange={(v) => smtpField("pass", v)} placeholder="16-char app password" />
+            </div>
+            <TextField label="From (display name + address)" value={String(smtp.from ?? "")} onChange={(v) => smtpField("from", v)} placeholder={'Best Cool Electronics <you@gmail.com>'} />
+            <p className="text-xs text-zinc-500">Leave a field blank to fall back to the backend .env value.</p>
+          </GlassCard>
+
+          <GlassCard className="space-y-4 p-5">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-400">Send a Test Email</h2>
+            <p className="text-xs text-zinc-500">
+              Click <span className="text-zinc-300">Save all settings</span> first, then send a test to confirm the credentials work.
+            </p>
+            <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+              <TextField label="Recipient" value={testTo} onChange={setTestTo} placeholder="where-to-send@example.com" />
+              <div className="flex items-end">
+                <Button onClick={sendTest} disabled={testing} className="bg-gradient-to-r from-cyan-500 to-violet-600 text-white">
+                  {testing ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : null} Send test email
+                </Button>
+              </div>
+            </div>
           </GlassCard>
         </TabsContent>
 

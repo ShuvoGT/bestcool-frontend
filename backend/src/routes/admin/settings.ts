@@ -4,6 +4,7 @@ import { z } from "zod";
 import { prisma } from "../../lib/prisma";
 import { asyncHandler, badRequest, notFound } from "../../lib/errors";
 import { validate } from "../../middleware/validate";
+import { sendTestEmail } from "../../lib/mailer";
 
 export const adminSettingsRouter = Router();
 
@@ -34,6 +35,20 @@ adminSettingsRouter.put(
         })
       )
     );
+    res.json({ ok: true });
+  })
+);
+
+// Send a test email using the currently-saved SMTP config (save before testing).
+adminSettingsRouter.post(
+  "/email/test",
+  validate({ body: z.object({ to: z.string().email("Enter a valid recipient email") }) }),
+  asyncHandler(async (req, res) => {
+    try {
+      await sendTestEmail(req.body.to);
+    } catch (err) {
+      throw badRequest(err instanceof Error ? err.message : "Failed to send test email");
+    }
     res.json({ ok: true });
   })
 );
