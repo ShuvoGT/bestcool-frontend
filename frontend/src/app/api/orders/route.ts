@@ -7,6 +7,7 @@ import { createOrder } from "@/server/orders";
 import { notifyOrderPlaced } from "@/server/notifications";
 import { paymentToken } from "@/server/payments";
 import { sanitizePlainText } from "@/server/sanitize";
+import { checkoutLimit } from "@/server/rateLimit";
 
 const createOrderBody = z.object({
   customer: z.object({
@@ -29,6 +30,7 @@ const createOrderBody = z.object({
 
 export async function POST(req: NextRequest) {
   try {
+    checkoutLimit(req);
     // Guest checkout is allowed — an account is auto-created when needed.
     const authUser = await getAuthUser();
     const body = createOrderBody.parse(await req.json());

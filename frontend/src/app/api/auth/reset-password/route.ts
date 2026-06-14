@@ -3,6 +3,7 @@ import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { badRequest, handleError } from "@/server/errors";
+import { authLimit } from "@/server/rateLimit";
 
 const schema = z.object({
   token: z.string().min(10),
@@ -11,6 +12,7 @@ const schema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
+    authLimit(req);
     const { token, newPassword } = schema.parse(await req.json());
     const reset = await prisma.passwordResetToken.findUnique({ where: { token } });
     if (!reset || reset.usedAt || reset.expiresAt < new Date()) {

@@ -4,6 +4,7 @@ import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { handleError } from "@/server/errors";
 import { sendMail } from "@/server/mailer";
+import { authLimit } from "@/server/rateLimit";
 
 const schema = z.object({ email: z.string().email().transform((v) => v.toLowerCase()) });
 
@@ -11,6 +12,7 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
 export async function POST(req: NextRequest) {
   try {
+    authLimit(req);
     const { email } = schema.parse(await req.json());
     const user = await prisma.user.findUnique({ where: { email } });
     // Always respond OK — never reveal whether an email is registered.

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { handleError } from "@/server/errors";
 import { getAuthUser } from "@/server/auth";
 import { initiatePayment, verifyPaymentToken } from "@/server/payments";
+import { checkoutLimit } from "@/server/rateLimit";
 
 const schema = z.object({ orderNumber: z.string().min(1), paymentToken: z.string().optional() });
 
@@ -12,6 +13,7 @@ const schema = z.object({ orderNumber: z.string().min(1), paymentToken: z.string
 // order creation — this prevents order-number enumeration / IDOR.
 export async function POST(req: NextRequest) {
   try {
+    checkoutLimit(req);
     const { orderNumber, paymentToken } = schema.parse(await req.json());
     const user = await getAuthUser();
     const owned =

@@ -10,6 +10,8 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import type { CourierName } from "@prisma/client";
 import { applyCourierWebhook } from "@/server/couriers";
+import { handleError } from "@/server/errors";
+import { callbackLimit } from "@/server/rateLimit";
 
 const PROVIDER_BY_SLUG: Record<string, CourierName> = {
   steadfast: "STEADFAST",
@@ -26,6 +28,11 @@ function timingSafeEqual(a: string, b: string): boolean {
 type Ctx = { params: Promise<{ provider: string }> };
 
 export async function POST(req: NextRequest, { params }: Ctx) {
+  try {
+    callbackLimit(req);
+  } catch (err) {
+    return handleError(err);
+  }
   const { provider } = await params;
   const courier = PROVIDER_BY_SLUG[(provider || "").toLowerCase()];
   if (!courier) return NextResponse.json({ error: "Unknown courier" }, { status: 400 });

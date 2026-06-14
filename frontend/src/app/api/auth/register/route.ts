@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { conflict, handleError } from "@/server/errors";
 import { signToken } from "@/server/jwt";
 import { setAuthCookie, publicUser } from "@/server/auth";
+import { authLimit } from "@/server/rateLimit";
 
 const schema = z.object({
   name: z.string().min(2).max(100),
@@ -15,6 +16,7 @@ const schema = z.object({
 
 export async function POST(req: NextRequest) {
   try {
+    authLimit(req);
     const { name, email, phone, password } = schema.parse(await req.json());
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) throw conflict("An account with this email already exists");

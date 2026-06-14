@@ -10,6 +10,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { PaymentMethod } from "@prisma/client";
 import { verifyAndSettle } from "@/server/payments";
+import { handleError } from "@/server/errors";
+import { callbackLimit } from "@/server/rateLimit";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
@@ -51,6 +53,11 @@ async function readParams(req: NextRequest): Promise<Record<string, unknown>> {
 type Ctx = { params: Promise<{ provider: string; orderNumber: string; action: string }> };
 
 async function handle(req: NextRequest, { params }: Ctx) {
+  try {
+    callbackLimit(req);
+  } catch (err) {
+    return handleError(err);
+  }
   const { provider, orderNumber, action } = await params;
   const method = PROVIDER_BY_SLUG[provider.toLowerCase()];
   if (!method) {
