@@ -4,7 +4,10 @@
  */
 import { cache } from "react";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
+// Consolidated app: Server Components fetch the same app's /api route handlers.
+// Server-side fetch needs an absolute URL, so fall back to the site origin when
+// NEXT_PUBLIC_API_URL is empty (same-origin). An absolute value still overrides.
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
 async function get<T>(path: string): Promise<T | null> {
   try {

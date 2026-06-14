@@ -1,6 +1,18 @@
-/** Typed fetch wrapper for the Express API. Cookies ride along automatically. */
+/** Typed fetch wrapper for the same-origin /api route handlers. Cookies ride along automatically. */
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
+// Empty (the consolidated app's default) = same-origin /api. An absolute value
+// (legacy split-app deploys) still works and overrides the origin.
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
+
+/** Resolves the request URL: relative to the browser origin when same-origin. */
+function resolveUrl(path: string): URL {
+  const origin =
+    typeof window !== "undefined"
+      ? window.location.origin
+      : process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  // When API_BASE is absolute, `origin` is ignored; when empty, `/api…` resolves against origin.
+  return new URL(`${API_BASE}/api${path}`, origin);
+}
 
 export class ApiError extends Error {
   constructor(public status: number, message: string, public details?: string[]) {
@@ -16,7 +28,7 @@ type Options = {
 };
 
 export async function api<T = unknown>(path: string, opts: Options = {}): Promise<T> {
-  const url = new URL(`${API_BASE}/api${path}`);
+  const url = resolveUrl(path);
   if (opts.query) {
     for (const [k, v] of Object.entries(opts.query)) {
       if (v !== undefined && v !== "") url.searchParams.set(k, String(v));
