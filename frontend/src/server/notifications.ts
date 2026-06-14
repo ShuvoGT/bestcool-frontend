@@ -8,7 +8,8 @@ import { prisma } from "@/lib/prisma";
 import { sendMail } from "./mailer";
 import { sendSms, type SmsEvent } from "./sms";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+// Runtime server var (see payments/index.ts) — email links need the real domain.
+const SITE_URL = process.env.APP_URL || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
 async function siteName(): Promise<string> {
   const row = await prisma.setting.findUnique({ where: { key: "site.name" } }).catch(() => null);

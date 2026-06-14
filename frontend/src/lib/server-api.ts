@@ -7,7 +7,11 @@ import { cache } from "react";
 // Consolidated app: Server Components fetch the same app's /api route handlers.
 // Server-side fetch needs an absolute URL, so fall back to the site origin when
 // NEXT_PUBLIC_API_URL is empty (same-origin). An absolute value still overrides.
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+// Server Components fetch the same app's /api at runtime. APP_URL is a runtime
+// server var (not NEXT_PUBLIC, which Next bakes in at build) so the production
+// origin works without a rebuild. NEXT_PUBLIC_API_URL still overrides if set.
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_URL || process.env.APP_URL || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
 async function get<T>(path: string): Promise<T | null> {
   try {

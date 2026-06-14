@@ -13,7 +13,9 @@ import { verifyAndSettle } from "@/server/payments";
 import { handleError } from "@/server/errors";
 import { callbackLimit } from "@/server/rateLimit";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+// Runtime server var (not NEXT_PUBLIC, which bakes in at build) so the storefront
+// redirect target uses the real production domain.
+const SITE_URL = process.env.APP_URL || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
 const PROVIDER_BY_SLUG: Record<string, PaymentMethod> = {
   bkash: "BKASH",

@@ -24,7 +24,9 @@ import { loadPaymentConfig } from "./config";
 import type { VerifyResult } from "./PaymentProvider";
 
 // Consolidated app is same-origin: gateway callbacks land on our own /api.
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+// APP_URL is a RUNTIME server var (not NEXT_PUBLIC, which Next bakes in at build
+// time) so the production domain is configurable without a rebuild.
+const SITE_URL = process.env.APP_URL || process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 // Shared fail-closed secret resolver (throws if unset) — never HMAC an empty key.
 const paymentSecret = () => authSecret();
 

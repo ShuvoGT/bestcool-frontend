@@ -66,7 +66,8 @@ Use hPanel **File Manager** (zip → upload → extract) or **FTP/SSH**.
   real values. Critical ones:
   - `DATABASE_URL` — your hPanel MySQL connection string
   - `NEXTAUTH_SECRET` — `openssl rand -base64 32`
-  - `NEXT_PUBLIC_SITE_URL` — `https://yourdomain`
+  - `APP_URL` — `https://yourdomain` (runtime origin for callbacks/emails; change
+    it here when you cut over the domain — no rebuild needed)
   - `NEXT_PUBLIC_API_URL` — leave **empty**
   - `CRON_SECRET`, `COURIER_WEBHOOK_SECRET` — random strings
   - `NODE_ENV=production`
