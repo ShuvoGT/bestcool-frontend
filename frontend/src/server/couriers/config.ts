@@ -12,7 +12,13 @@ const SETTING_KEYS = ["courier.mode", "courier.steadfast", "courier.pathao", "co
 type Obj = Record<string, unknown>;
 const str = (v: unknown): string => (typeof v === "string" ? v.trim() : "");
 
-const envMode = ((process.env.COURIER_MODE || "sandbox").trim().toLowerCase()) as CourierMode;
+// Validate the env fallback mode: an unrecognised COURIER_MODE falls back to
+// "sandbox" (fail safe — a typo never silently dispatches via live couriers).
+const rawCourierMode = (process.env.COURIER_MODE || "sandbox").trim().toLowerCase();
+if (rawCourierMode !== "sandbox" && rawCourierMode !== "live") {
+  console.warn(`⚠ COURIER_MODE="${process.env.COURIER_MODE}" is invalid — falling back to "sandbox".`);
+}
+const envMode: CourierMode = rawCourierMode === "live" ? "live" : "sandbox";
 const env = {
   steadfast: { apiKey: process.env.STEADFAST_API_KEY || "", secretKey: process.env.STEADFAST_SECRET_KEY || "" },
   pathao: {

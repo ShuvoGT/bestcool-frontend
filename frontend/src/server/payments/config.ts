@@ -13,7 +13,13 @@ const SETTING_KEYS = ["payment.mode", "payment.bkash", "payment.nagad", "payment
 type Obj = Record<string, unknown>;
 const str = (v: unknown): string => (typeof v === "string" ? v.trim() : "");
 
-const envMode = ((process.env.PAYMENT_MODE || "sandbox").trim().toLowerCase()) as PaymentMode;
+// Validate the env fallback mode: an unrecognised PAYMENT_MODE falls back to
+// "sandbox" (fail safe — a typo never silently routes real customers to live).
+const rawPaymentMode = (process.env.PAYMENT_MODE || "sandbox").trim().toLowerCase();
+if (rawPaymentMode !== "sandbox" && rawPaymentMode !== "live") {
+  console.warn(`⚠ PAYMENT_MODE="${process.env.PAYMENT_MODE}" is invalid — falling back to "sandbox".`);
+}
+const envMode: PaymentMode = rawPaymentMode === "live" ? "live" : "sandbox";
 const env = {
   bkash: {
     appKey: process.env.BKASH_APP_KEY || "",

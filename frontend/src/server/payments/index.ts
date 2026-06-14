@@ -17,6 +17,7 @@ import crypto from "crypto";
 import { Prisma, type PaymentMethod } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { AppError, badRequest, notFound } from "../errors";
+import { authSecret } from "../jwt";
 import { notifyPaymentConfirmed } from "../notifications";
 import { getProvider } from "./providers";
 import { loadPaymentConfig } from "./config";
@@ -24,7 +25,8 @@ import type { VerifyResult } from "./PaymentProvider";
 
 // Consolidated app is same-origin: gateway callbacks land on our own /api.
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-const paymentSecret = () => process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET || "";
+// Shared fail-closed secret resolver (throws if unset) — never HMAC an empty key.
+const paymentSecret = () => authSecret();
 
 /** Per-order callback base, e.g. {SITE}/api/payments/bkash/NM-000007 */
 export function callbackBaseUrl(method: PaymentMethod, orderNumber: string): string {
