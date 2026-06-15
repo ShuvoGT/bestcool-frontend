@@ -9,6 +9,11 @@ import { Analytics } from "@/components/store/Analytics";
 import { CodeSnippets } from "@/components/store/CodeSnippets";
 import { Toaster } from "@/components/ui/sonner";
 
+// Render storefront pages at request time (live DB data), not statically at
+// build. The data layer queries Prisma directly, which otherwise lets Next
+// prerender these pages with build-time data (stale; admin edits wouldn't show).
+export const dynamic = "force-dynamic";
+
 export default async function StoreLayout({ children }: { children: React.ReactNode }) {
   // Settings (menu, branding) + product categories both come from the backend,
   // so the header's nav and "Top Categories" list are fully admin-managed.
