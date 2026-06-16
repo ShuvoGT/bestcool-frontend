@@ -19,7 +19,7 @@ export default function AdminPagesList() {
       <PageHeader title="Pages" subtitle="Every storefront page is built from editable content blocks" />
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {data.pages.map((p) => (
-          <Link key={p.id} href={`/admin/pages/${p.id}`}>
+          <Link key={p.id} href={`/work/pages/${p.id}`}>
             <GlassCard className="group flex items-center gap-4 p-5 transition-all hover:border-cyan-400/30 hover:shadow-[0_0_24px_rgba(34,211,238,0.12)]">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-500/20 to-violet-500/20 text-cyan-400">
                 <FileText className="h-5 w-5" />

@@ -5,7 +5,7 @@ import { handleError } from "@/server/errors";
 // Storefront-readable settings only. Payment/courier secrets are excluded;
 // code snippets + analytics are inherently client-side, so they're public.
 const PUBLIC_SETTING_PREFIXES = [
-  "site.", "contact.", "social.", "whatsapp.", "chat.", "analytics.", "code.", "nav.", "footer.",
+  "site.", "contact.", "social.", "whatsapp.", "chat.", "analytics.", "code.", "nav.", "footer.", "maintenance.",
 ];
 
 export async function GET() {

@@ -151,7 +151,7 @@ authRouter.post(
       const link = `${env.frontendUrl}/reset-password?token=${token}`;
       await sendMail(
         user.email,
-        "Reset your Next Mart password",
+        "Reset your Best Cool Electronics password",
         `<p>Hi ${user.name},</p><p>Click the link below to set a new password. This link expires in 1 hour.</p><p><a href="${link}">${link}</a></p><p>If you didn't request this, you can safely ignore this email.</p>`
       );
     }

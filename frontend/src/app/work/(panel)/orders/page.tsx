@@ -104,7 +104,7 @@ export default function AdminOrdersPage() {
               {data.items.map((o) => (
                 <TableRow key={o.id} className="border-white/5 hover:bg-white/3">
                   <TableCell>
-                    <Link href={`/admin/orders/${o.id}`} className="font-medium text-cyan-400 hover:text-cyan-300">
+                    <Link href={`/work/orders/${o.id}`} className="font-medium text-cyan-400 hover:text-cyan-300">
                       {o.orderNumber}
                     </Link>
                   </TableCell>

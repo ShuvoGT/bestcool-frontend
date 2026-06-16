@@ -85,7 +85,7 @@ export function ProductForm({ initial, productId }: { initial: ProductFormValues
         await api("/admin/products", { method: "POST", body });
         toast.success("Product created");
       }
-      router.push("/admin/products");
+      router.push("/work/products");
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Save failed");
       setSaving(false);
@@ -94,7 +94,7 @@ export function ProductForm({ initial, productId }: { initial: ProductFormValues
 
   return (
     <div className="mx-auto max-w-3xl">
-      <Link href="/admin/products" className="mb-4 inline-flex items-center gap-1.5 text-sm text-zinc-400 hover:text-cyan-400">
+      <Link href="/work/products" className="mb-4 inline-flex items-center gap-1.5 text-sm text-zinc-400 hover:text-cyan-400">
         <ArrowLeft className="h-4 w-4" /> All products
       </Link>
       <PageHeader

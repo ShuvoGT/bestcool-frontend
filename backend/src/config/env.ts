@@ -32,7 +32,7 @@ export const env = {
     secure: process.env.SMTP_SECURE === "true",
     user: process.env.SMTP_USER || "",
     pass: process.env.SMTP_PASS || "",
-    from: process.env.MAIL_FROM || "Next Mart <no-reply@nextmart.com.bd>",
+    from: process.env.MAIL_FROM || "Best Cool Electronics <no-reply@bestcoolelectronics.com>",
   },
 
   sms: {

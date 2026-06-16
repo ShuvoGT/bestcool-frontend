@@ -58,7 +58,7 @@ export default function AdminProductsPage() {
         title="Products"
         subtitle={data ? `${data.total} product${data.total === 1 ? "" : "s"}` : undefined}
         actions={
-          <Link href="/admin/products/new">
+          <Link href="/work/products/new">
             <Button className="bg-gradient-to-r from-cyan-500 to-violet-600 text-white shadow-lg shadow-cyan-500/25 hover:from-cyan-400 hover:to-violet-500">
               <Plus className="mr-1 h-4 w-4" /> New product
             </Button>
@@ -150,7 +150,7 @@ export default function AdminProductsPage() {
                   </TableCell>
                   <TableCell>
                     <div className="flex justify-end gap-1">
-                      <Link href={`/admin/products/${p.id}`}>
+                      <Link href={`/work/products/${p.id}`}>
                         <Button size="icon" variant="ghost" className="h-7 w-7 text-zinc-400 hover:text-cyan-300">
                           <Pencil className="h-4 w-4" />
                         </Button>

@@ -11,7 +11,7 @@ import { env } from "../config/env";
 
 async function siteName(): Promise<string> {
   const row = await prisma.setting.findUnique({ where: { key: "site.name" } }).catch(() => null);
-  return (row?.value as string) ?? "Next Mart";
+  return (row?.value as string) ?? "Best Cool Electronics";
 }
 
 const bdt = (n: number | string) => `Tk ${Number(n).toLocaleString("en-IN")}`;

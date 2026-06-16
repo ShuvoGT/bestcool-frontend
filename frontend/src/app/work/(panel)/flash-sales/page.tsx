@@ -86,7 +86,7 @@ export default function AdminFlashSalesPage() {
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-amber-500/20 to-orange-500/20 text-amber-400">
                 <Zap className="h-5 w-5" />
               </div>
-              <Link href={`/admin/flash-sales/${s.id}`} className="min-w-0 flex-1">
+              <Link href={`/work/flash-sales/${s.id}`} className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <span className="font-semibold text-zinc-100">{s.title}</span>
                   <StatusBadge status={s.status} />
@@ -98,7 +98,7 @@ export default function AdminFlashSalesPage() {
               <Button size="icon" variant="ghost" className="h-7 w-7 shrink-0 text-zinc-400 hover:text-red-400" onClick={() => remove(s)}>
                 <Trash2 className="h-4 w-4" />
               </Button>
-              <Link href={`/admin/flash-sales/${s.id}`}>
+              <Link href={`/work/flash-sales/${s.id}`}>
                 <ChevronRight className="h-4 w-4 text-zinc-600 group-hover:text-cyan-400" />
               </Link>
             </GlassCard>

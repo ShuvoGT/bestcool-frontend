@@ -1,11 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { ShoppingCart, Banknote, TrendingUp, Users, AlertTriangle } from "lucide-react";
+import { ShoppingCart, Banknote, TrendingUp, Users, AlertTriangle, Wrench, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { useLoad } from "@/lib/hooks";
 import { bdt, formatDateTime } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import { GlassCard, PageHeader, Spinner, StatusBadge, EmptyState } from "@/components/admin/ui";
+import { useAdminUser } from "@/components/admin/AdminShell";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 type Stats = {
@@ -27,12 +31,65 @@ const STAT_CARDS = [
 
 export default function AdminDashboard() {
   const { data, loading } = useLoad(() => api<Stats>("/admin/dashboard/stats"));
+  const { data: pub, reload: reloadPub } = useLoad(() =>
+    api<{ settings: Record<string, unknown> }>("/settings/public").then((r) => r.settings)
+  );
+  const user = useAdminUser();
+  const canManage = !!user && (user.role === "ADMIN" || (user.permissions ?? []).includes("settings"));
+  const maintenanceOn = pub?.["maintenance.enabled"] === true;
+  const [toggling, setToggling] = useState(false);
+
+  async function toggleMaintenance() {
+    setToggling(true);
+    try {
+      await api("/admin/settings", { method: "PUT", body: { "maintenance.enabled": !maintenanceOn } });
+      toast.success(!maintenanceOn ? "Maintenance mode ON — storefront is now hidden" : "Maintenance mode OFF — store is live again");
+      reloadPub();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to update");
+    } finally {
+      setToggling(false);
+    }
+  }
 
   if (loading || !data) return <Spinner />;
 
   return (
     <div>
       <PageHeader title="Dashboard" subtitle="Live overview of your store" />
+
+      {canManage && (
+        <GlassCard className={cn("mb-6 flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between", maintenanceOn && "border-amber-400/30 bg-amber-500/5")}>
+          <div className="flex items-start gap-3">
+            <span className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-lg", maintenanceOn ? "bg-amber-500/15 text-amber-400" : "bg-white/5 text-zinc-400")}>
+              <Wrench className="h-5 w-5" />
+            </span>
+            <div>
+              <div className="text-sm font-semibold text-zinc-100">Maintenance mode</div>
+              <div className="text-xs text-zinc-400">
+                {maintenanceOn
+                  ? "The storefront is hidden — customers see the maintenance notice. Only the admin panel is reachable."
+                  : "The store is live. Turn this on to show the maintenance notice while you make changes."}
+              </div>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={toggleMaintenance}
+            disabled={toggling}
+            aria-pressed={maintenanceOn}
+            className={cn(
+              "inline-flex h-9 shrink-0 items-center gap-2 rounded-lg px-4 text-sm font-semibold transition-all disabled:opacity-60",
+              maintenanceOn
+                ? "bg-amber-500/90 text-amber-950 hover:bg-amber-400"
+                : "bg-gradient-to-r from-cyan-500 to-violet-600 text-white shadow-lg shadow-cyan-500/25 hover:from-cyan-400 hover:to-violet-500"
+            )}
+          >
+            {toggling ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wrench className="h-4 w-4" />}
+            {maintenanceOn ? "Turn off — go live" : "Turn on maintenance"}
+          </button>
+        </GlassCard>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {STAT_CARDS.map(({ key, label, icon: Icon, accent, fmt }) => (
@@ -54,7 +111,7 @@ export default function AdminDashboard() {
         <GlassCard className="xl:col-span-2">
           <div className="flex items-center justify-between border-b border-white/8 px-5 py-4">
             <h2 className="font-semibold text-zinc-100">Recent Orders</h2>
-            <Link href="/admin/orders" className="text-xs font-medium text-cyan-400 hover:text-cyan-300">View all →</Link>
+            <Link href="/work/orders" className="text-xs font-medium text-cyan-400 hover:text-cyan-300">View all →</Link>
           </div>
           {data.recentOrders.length === 0 ? (
             <EmptyState message="No orders yet" />
@@ -74,7 +131,7 @@ export default function AdminDashboard() {
                 {data.recentOrders.map((o) => (
                   <TableRow key={o.id} className="border-white/5 hover:bg-white/3">
                     <TableCell>
-                      <Link href={`/admin/orders/${o.id}`} className="font-medium text-cyan-400 hover:text-cyan-300">
+                      <Link href={`/work/orders/${o.id}`} className="font-medium text-cyan-400 hover:text-cyan-300">
                         {o.orderNumber}
                       </Link>
                     </TableCell>

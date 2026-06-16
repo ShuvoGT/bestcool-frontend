@@ -1,5 +1,5 @@
 /**
- * Next Mart API — entry point.
+ * Best Cool Electronics API — entry point.
  * Public routes are mounted under /api/*, admin routes under /api/admin/*
  * (all admin routes sit behind requireAdmin).
  */
@@ -92,7 +92,7 @@ app.use(notFoundHandler);
 app.use(errorHandler);
 
 app.listen(env.port, () => {
-  console.log(`Next Mart API running on http://localhost:${env.port} (${env.nodeEnv})`);
+  console.log(`Best Cool Electronics API running on http://localhost:${env.port} (${env.nodeEnv})`);
 
   // Reconciliation sweep: settle bKash/Nagad orders whose browser redirect
   // never landed. Each run loads the current admin/.env config and no-ops when

@@ -1,7 +1,7 @@
 {
   "name": "nextmart-backend",
   "version": "1.0.0",
-  "description": "Next Mart e-commerce REST API (Express + Prisma + PostgreSQL)",
+  "description": "Best Cool Electronics e-commerce REST API (Express + Prisma + PostgreSQL)",
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",

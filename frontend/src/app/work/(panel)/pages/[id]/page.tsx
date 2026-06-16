@@ -135,7 +135,7 @@ export default function PageEditor() {
 
   return (
     <div className="mx-auto max-w-4xl">
-      <Link href="/admin/pages" className="mb-4 inline-flex items-center gap-1.5 text-sm text-zinc-400 hover:text-cyan-400">
+      <Link href="/work/pages" className="mb-4 inline-flex items-center gap-1.5 text-sm text-zinc-400 hover:text-cyan-400">
         <ArrowLeft className="h-4 w-4" /> All pages
       </Link>
       <PageHeader

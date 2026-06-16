@@ -143,6 +143,7 @@ export default function AdminSettingsPage() {
       <Tabs defaultValue="general">
         <TabsList className="mb-4 flex-wrap border border-white/8 bg-white/4">
           <TabsTrigger value="general" className={tabCls}>General</TabsTrigger>
+          <TabsTrigger value="maintenance" className={tabCls}>Maintenance</TabsTrigger>
           <TabsTrigger value="menus" className={tabCls}>Menus & Footer</TabsTrigger>
           <TabsTrigger value="integrations" className={tabCls}>Integrations</TabsTrigger>
           <TabsTrigger value="payments" className={tabCls}>Payments</TabsTrigger>
@@ -164,6 +165,23 @@ export default function AdminSettingsPage() {
               <ImageField label="Logo" value={get("site.logo", "") ?? ""} onChange={(v) => set("site.logo", v || null)} />
               <ImageField label="Favicon" value={get("site.favicon", "") ?? ""} onChange={(v) => set("site.favicon", v || null)} />
             </div>
+            <p className="text-xs text-zinc-500">
+              The site name shows in the header, footer and the admin “{get("site.name", "Best Cool Electronics")} Control Center”.
+              The favicon is the small icon in the browser tab (upload a square PNG/ICO).
+            </p>
+          </GlassCard>
+          <GlassCard className="space-y-4 p-5">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-400">Search Engines</h2>
+            <SwitchField
+              label="Allow search engines to index this site"
+              checked={get<boolean>("site.indexable", true) !== false}
+              onChange={(v) => set("site.indexable", v)}
+            />
+            <p className="text-xs text-zinc-500">
+              Turn this off while the store is under construction — it adds a <span className="text-zinc-300">noindex</span> tag so
+              Google and others skip the site. Turn it back on to be discoverable. (Takes effect on the next page load; the admin
+              panel is always noindex.)
+            </p>
           </GlassCard>
           <GlassCard className="space-y-4 p-5">
             <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-400">Contact</h2>
@@ -190,6 +208,65 @@ export default function AdminSettingsPage() {
               onClick={() => set("social.links", [...socials, { platform: "", url: "" }])}>
               <Plus className="mr-1 h-3.5 w-3.5" /> Add social link
             </Button>
+          </GlassCard>
+        </TabsContent>
+
+        {/* Maintenance */}
+        <TabsContent value="maintenance" className="space-y-6">
+          <GlassCard className="space-y-4 p-5">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-400">Maintenance Mode</h2>
+            <SwitchField
+              label="Enable maintenance mode"
+              description="When on, visitors see the notice below instead of the store. The admin panel stays open."
+              checked={get<boolean>("maintenance.enabled", false) === true}
+              onChange={(v) => set("maintenance.enabled", v)}
+            />
+            {get<boolean>("maintenance.enabled", false) === true && (
+              <p className="rounded-lg border border-amber-400/30 bg-amber-500/10 px-4 py-2.5 text-xs font-medium text-amber-300">
+                ⚠ Maintenance mode is ON — the storefront is hidden from customers. Remember to save, then turn it off when you&apos;re done.
+              </p>
+            )}
+          </GlassCard>
+
+          <GlassCard className="space-y-4 p-5">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-400">Notice Content</h2>
+            <TextField
+              label="Heading"
+              value={get("maintenance.title", "")}
+              onChange={(v) => set("maintenance.title", v)}
+              placeholder="We'll be right back"
+            />
+            <TextareaField
+              label="Message"
+              value={get("maintenance.message", "")}
+              onChange={(v) => set("maintenance.message", v)}
+              rows={3}
+              placeholder="Our store is undergoing scheduled maintenance. Please check back soon."
+              hint="Shown under the heading. Line breaks are preserved."
+            />
+          </GlassCard>
+
+          <GlassCard className="space-y-4 p-5">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-400">Countdown Timer</h2>
+            <div className="space-y-1.5">
+              <Label className="text-zinc-300">Back online at (optional)</Label>
+              <div className="flex gap-2">
+                <input
+                  type="datetime-local"
+                  value={get("maintenance.until", "") ?? ""}
+                  onChange={(e) => set("maintenance.until", e.target.value || null)}
+                  className="flex h-9 w-full rounded-md border border-white/10 bg-white/5 px-3 py-1 text-sm text-zinc-100 [color-scheme:dark] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-cyan-400"
+                />
+                {get("maintenance.until", "") && (
+                  <Button size="icon" variant="ghost" className="shrink-0 text-zinc-400 hover:text-red-400" onClick={() => set("maintenance.until", null)}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+              <p className="text-xs text-zinc-500">
+                Set a date &amp; time to show a live countdown on the maintenance page. Leave empty to hide the timer. Uses your local time.
+              </p>
+            </div>
           </GlassCard>
         </TabsContent>
 

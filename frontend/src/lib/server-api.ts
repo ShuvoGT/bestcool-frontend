@@ -33,7 +33,7 @@ const plain = (v: unknown): any => JSON.parse(JSON.stringify(v));
 export type Settings = Record<string, any>;
 
 const PUBLIC_SETTING_PREFIXES = [
-  "site.", "contact.", "social.", "whatsapp.", "chat.", "analytics.", "code.", "nav.", "footer.",
+  "site.", "contact.", "social.", "whatsapp.", "chat.", "analytics.", "code.", "nav.", "footer.", "maintenance.",
 ];
 
 /** Deduped per-request: layout, header, footer and pages all share one call. */

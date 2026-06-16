@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Geist_Mono } from "next/font/google";
+import { getSettings } from "@/lib/server-api";
 import "./globals.css";
 
 // Refined, friendly sans for the whole app (storefront + admin).
@@ -15,11 +16,28 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Next Mart — Genuine Electronics in Bangladesh",
-  description:
-    "Buy 100% authentic smartphones, laptops, smart watches and accessories with official warranty. Fast delivery across Bangladesh.",
-};
+// Branding (title / favicon) and search-engine indexing are driven by Admin →
+// Settings, so the store owner can rebrand without a redeploy.
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSettings();
+  const siteName = (settings["site.name"] as string) || "Best Cool Electronics";
+  const tagline = (settings["site.tagline"] as string) || "Genuine Electronics in Bangladesh";
+  const favicon = (settings["site.favicon"] as string) || null;
+  const maintenance = settings["maintenance.enabled"] === true;
+  // Default: indexable. Admin can flip "site.indexable" off to noindex the site.
+  // During maintenance we always noindex so search engines don't cache the notice.
+  const indexable = !maintenance && settings["site.indexable"] !== false;
+  const title = maintenance
+    ? `${(settings["maintenance.title"] as string) || "Under Maintenance"} — ${siteName}`
+    : `${siteName} — ${tagline}`;
+  return {
+    title,
+    description:
+      "Buy 100% authentic smartphones, laptops, smart watches and accessories with official warranty. Fast delivery across Bangladesh.",
+    icons: favicon ? { icon: favicon, shortcut: favicon, apple: favicon } : undefined,
+    robots: indexable ? undefined : { index: false, follow: false },
+  };
+}
 
 export default function RootLayout({
   children,

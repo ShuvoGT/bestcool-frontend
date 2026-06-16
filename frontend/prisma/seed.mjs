@@ -10,7 +10,7 @@ async function main() {
     where: { email: "admin@nextmart.com.bd" },
     update: {},
     create: {
-      name: "Next Mart Admin",
+      name: "Best Cool Electronics Admin",
       username: "admin",
       email: "admin@nextmart.com.bd",
       password: await bcrypt.hash("Admin@12345", 10),
@@ -22,6 +22,11 @@ async function main() {
   const settings = {
     "site.name": "Best Cool Electronics",
     "site.tagline": "Genuine Electronics in Bangladesh",
+    "site.indexable": true,
+    "maintenance.enabled": false,
+    "maintenance.title": "We'll be right back",
+    "maintenance.message": "Our store is undergoing scheduled maintenance. Please check back soon.",
+    "maintenance.until": null,
     "payment.mode": "sandbox",
     "courier.mode": "sandbox",
     "email.smtp": {

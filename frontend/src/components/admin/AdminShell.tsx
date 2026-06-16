@@ -27,15 +27,15 @@ export const useAdminUser = () => useContext(AdminUserContext);
 // capability key (ADMIN implicitly has all).
 type NavItem = { href: string; label: string; icon: LucideIcon; exact?: boolean; perm: string | null };
 const NAV: NavItem[] = [
-  { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true, perm: null },
-  { href: "/admin/pages", label: "Pages", icon: FileText, perm: "content" },
-  { href: "/admin/products", label: "Products", icon: Package, perm: "products" },
-  { href: "/admin/categories", label: "Categories", icon: Tags, perm: "products" },
-  { href: "/admin/orders", label: "Orders", icon: ShoppingCart, perm: "orders" },
-  { href: "/admin/customers", label: "Customers", icon: Users, perm: "customers" },
-  { href: "/admin/flash-sales", label: "Flash Sales", icon: Zap, perm: "flashSales" },
-  { href: "/admin/users", label: "Users", icon: Shield, perm: "__admin__" },
-  { href: "/admin/settings", label: "Settings", icon: Settings, perm: "settings" },
+  { href: "/work", label: "Dashboard", icon: LayoutDashboard, exact: true, perm: null },
+  { href: "/work/pages", label: "Pages", icon: FileText, perm: "content" },
+  { href: "/work/products", label: "Products", icon: Package, perm: "products" },
+  { href: "/work/categories", label: "Categories", icon: Tags, perm: "products" },
+  { href: "/work/orders", label: "Orders", icon: ShoppingCart, perm: "orders" },
+  { href: "/work/customers", label: "Customers", icon: Users, perm: "customers" },
+  { href: "/work/flash-sales", label: "Flash Sales", icon: Zap, perm: "flashSales" },
+  { href: "/work/users", label: "Users", icon: Shield, perm: "__admin__" },
+  { href: "/work/settings", label: "Settings", icon: Settings, perm: "settings" },
 ];
 
 function canSee(user: AdminUser, perm: string | null): boolean {
@@ -50,6 +50,8 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [user, setUser] = useState<AdminUser | null>(null);
   const [checking, setChecking] = useState(true);
+  // Site name drives the "<Site> Control Center" branding; admin-editable in Settings.
+  const [siteName, setSiteName] = useState("Best Cool Electronics");
 
   useEffect(() => {
     api<{ user: AdminUser }>("/auth/me")
@@ -58,12 +60,21 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         setUser(res.user);
         setChecking(false);
       })
-      .catch(() => router.replace("/admin/login"));
+      .catch(() => router.replace("/work/login"));
   }, [router]);
+
+  useEffect(() => {
+    api<{ settings: Record<string, unknown> }>("/settings/public")
+      .then((r) => {
+        const name = r.settings["site.name"];
+        if (typeof name === "string" && name.trim()) setSiteName(name);
+      })
+      .catch(() => undefined);
+  }, []);
 
   async function logout() {
     await api("/auth/logout", { method: "POST" }).catch(() => undefined);
-    router.replace("/admin/login");
+    router.replace("/work/login");
   }
 
   if (checking || !user) {
@@ -91,7 +102,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             </div>
             <div>
               <div className="bg-gradient-to-r from-cyan-300 to-violet-400 bg-clip-text text-base font-bold leading-tight text-transparent">
-                Next Mart
+                {siteName}
               </div>
               <div className="text-[10px] font-medium uppercase tracking-[0.2em] text-zinc-500">Control Center</div>
             </div>
@@ -121,10 +132,10 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
           <div className="border-t border-white/8 p-3">
             <Link
-              href="/admin/profile"
+              href="/work/profile"
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
-                pathname === "/admin/profile" ? "bg-white/5 text-cyan-300" : "text-zinc-400 hover:bg-white/5 hover:text-zinc-100"
+                pathname === "/work/profile" ? "bg-white/5 text-cyan-300" : "text-zinc-400 hover:bg-white/5 hover:text-zinc-100"
               )}
             >
               <UserCircle className="h-4 w-4" /> My profile
@@ -153,7 +164,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
         {/* Mobile top bar */}
         <header className="sticky top-0 z-20 flex items-center justify-between border-b border-white/8 bg-zinc-950/80 px-4 py-3 backdrop-blur-xl lg:hidden">
-          <div className="bg-gradient-to-r from-cyan-300 to-violet-400 bg-clip-text font-bold text-transparent">Next Mart Admin</div>
+          <div className="bg-gradient-to-r from-cyan-300 to-violet-400 bg-clip-text font-bold text-transparent">{siteName} Admin</div>
           <button onClick={logout} className="text-sm text-zinc-400">Sign out</button>
         </header>
         <nav className="sticky top-12 z-20 flex gap-1 overflow-x-auto border-b border-white/8 bg-zinc-950/80 px-2 py-2 backdrop-blur-xl lg:hidden">
@@ -172,7 +183,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               </Link>
             );
           })}
-          <Link href="/admin/profile" className={cn("whitespace-nowrap rounded-md px-3 py-1.5 text-xs font-medium", pathname === "/admin/profile" ? "bg-cyan-500/15 text-cyan-300" : "text-zinc-400")}>
+          <Link href="/work/profile" className={cn("whitespace-nowrap rounded-md px-3 py-1.5 text-xs font-medium", pathname === "/work/profile" ? "bg-cyan-500/15 text-cyan-300" : "text-zinc-400")}>
             Profile
           </Link>
         </nav>

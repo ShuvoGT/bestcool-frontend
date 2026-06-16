@@ -1,5 +1,5 @@
 /**
- * Next Mart seed script.
+ * Best Cool Electronics seed script.
  *
  * Creates: 1 admin user, 4 electronics categories, 10 sample products
  * (with variants on several), 1 running flash sale (ends ~7 days from now),
@@ -24,7 +24,7 @@ async function seedAdmin() {
     where: { email: "admin@nextmart.com.bd" },
     update: {},
     create: {
-      name: "Next Mart Admin",
+      name: "Best Cool Electronics Admin",
       email: "admin@nextmart.com.bd",
       phone: "01700000000",
       password,
@@ -297,7 +297,7 @@ async function seedDeliveryZones() {
 
 async function seedSettings() {
   const settings: Record<string, unknown> = {
-    "site.name": "Next Mart",
+    "site.name": "Best Cool Electronics",
     "site.tagline": "Your trusted electronics store in Bangladesh",
     "site.logo": null, // when null the storefront renders the site name as a text logo
     "site.favicon": null,
@@ -310,7 +310,7 @@ async function seedSettings() {
       { platform: "youtube", url: "https://youtube.com/@nextmartbd" },
     ],
     "whatsapp.number": "8801700000000",
-    "whatsapp.message": "Hello Next Mart! I have a question about a product.",
+    "whatsapp.message": "Hello Best Cool Electronics! I have a question about a product.",
     "chat.embedCode": "",
     "analytics.facebookPixelId": "",
     "analytics.ga4MeasurementId": "",
@@ -342,7 +342,7 @@ async function seedSettings() {
         ],
       },
     ],
-    "footer.text": "Next Mart — Bangladesh's trusted destination for genuine electronics. 100% authentic products with official warranty.",
+    "footer.text": "Best Cool Electronics — Bangladesh's trusted destination for genuine electronics. 100% authentic products with official warranty.",
   };
 
   for (const [key, value] of Object.entries(settings)) {
@@ -370,7 +370,7 @@ async function seedPages(
     {
       slug: "home",
       title: "Home",
-      metaTitle: "Next Mart — Genuine Electronics at the Best Price in Bangladesh",
+      metaTitle: "Best Cool Electronics — Genuine Electronics at the Best Price in Bangladesh",
       metaDescription:
         "Buy 100% authentic smartphones, laptops, smart watches and accessories with official warranty. Fast delivery across Bangladesh. Cash on delivery available.",
       blocks: [
@@ -445,17 +445,17 @@ async function seedPages(
     {
       slug: "about-us",
       title: "About Us",
-      metaTitle: "About Next Mart — Who We Are",
-      metaDescription: "Next Mart is Bangladesh's trusted online electronics store, delivering 100% genuine products with official warranty since 2020.",
+      metaTitle: "About Best Cool Electronics — Who We Are",
+      metaDescription: "Best Cool Electronics is Bangladesh's trusted online electronics store, delivering 100% genuine products with official warranty since 2020.",
       blocks: [
         {
           type: BlockType.BANNER,
-          content: { image: img("About Next Mart", 1600, 400, "0f172a", "e2e8f0"), alt: "About Next Mart" },
+          content: { image: img("About Best Cool Electronics", 1600, 400, "0f172a", "e2e8f0"), alt: "About Best Cool Electronics" },
         },
         {
           type: BlockType.RICH_TEXT,
           content: {
-            html: "<h2>Our Story</h2><p>Founded in 2020 in Dhaka, <strong>Next Mart</strong> started with a simple mission: make genuine electronics accessible to everyone in Bangladesh at honest prices. Today we serve customers in all 64 districts with official-warranty smartphones, laptops, smart watches and accessories.</p><p>Every product we sell is sourced from authorized distributors — no grey-market imports, no clones, no compromises.</p>",
+            html: "<h2>Our Story</h2><p>Founded in 2020 in Dhaka, <strong>Best Cool Electronics</strong> started with a simple mission: make genuine electronics accessible to everyone in Bangladesh at honest prices. Today we serve customers in all 64 districts with official-warranty smartphones, laptops, smart watches and accessories.</p><p>Every product we sell is sourced from authorized distributors — no grey-market imports, no clones, no compromises.</p>",
           },
         },
         {
@@ -463,7 +463,7 @@ async function seedPages(
           content: {
             image: img("Our Warehouse", 800, 600, "1e293b"),
             layout: "left",
-            heading: "Why Choose Next Mart?",
+            heading: "Why Choose Best Cool Electronics?",
             html: "<ul><li><strong>100% genuine products</strong> with official Bangladesh warranty</li><li><strong>Fast delivery</strong> — same-day inside Dhaka, 2–4 days nationwide</li><li><strong>Cash on delivery</strong> everywhere in Bangladesh</li><li><strong>Easy returns</strong> — 7-day replacement guarantee</li></ul>",
           },
         },
@@ -483,8 +483,8 @@ async function seedPages(
     {
       slug: "contact-us",
       title: "Contact Us",
-      metaTitle: "Contact Next Mart — We're Here to Help",
-      metaDescription: "Reach Next Mart by phone, email, WhatsApp or visit our Dhanmondi showroom. Open 7 days a week, 10am–9pm.",
+      metaTitle: "Contact Best Cool Electronics — We're Here to Help",
+      metaDescription: "Reach Best Cool Electronics by phone, email, WhatsApp or visit our Dhanmondi showroom. Open 7 days a week, 10am–9pm.",
       blocks: [
         {
           type: BlockType.CONTACT_INFO,
@@ -514,7 +514,7 @@ async function seedPages(
     {
       slug: "shop",
       title: "Shop",
-      metaTitle: "Shop All Electronics — Next Mart Bangladesh",
+      metaTitle: "Shop All Electronics — Best Cool Electronics Bangladesh",
       metaDescription: "Browse smartphones, laptops, smart watches and accessories. Filter by category and price, with nationwide delivery.",
       blocks: [
         {
@@ -526,12 +526,12 @@ async function seedPages(
     {
       slug: "showroom",
       title: "Showroom",
-      metaTitle: "Visit Our Showrooms — Next Mart",
-      metaDescription: "Experience products hands-on at Next Mart showrooms in Dhanmondi and Uttara, Dhaka.",
+      metaTitle: "Visit Our Showrooms — Best Cool Electronics",
+      metaDescription: "Experience products hands-on at Best Cool Electronics showrooms in Dhanmondi and Uttara, Dhaka.",
       blocks: [
         {
           type: BlockType.BANNER,
-          content: { image: img("Our Showrooms", 1600, 400, "082f49", "bae6fd"), alt: "Next Mart showrooms" },
+          content: { image: img("Our Showrooms", 1600, 400, "082f49", "bae6fd"), alt: "Best Cool Electronics showrooms" },
         },
         {
           type: BlockType.IMAGE_TEXT,
@@ -568,13 +568,13 @@ async function seedPages(
     {
       slug: "terms",
       title: "Terms & Conditions",
-      metaTitle: "Terms & Conditions — Next Mart",
-      metaDescription: "Read the terms and conditions for shopping with Next Mart Bangladesh.",
+      metaTitle: "Terms & Conditions — Best Cool Electronics",
+      metaDescription: "Read the terms and conditions for shopping with Best Cool Electronics Bangladesh.",
       blocks: [
         {
           type: BlockType.RICH_TEXT,
           content: {
-            html: "<h2>Terms & Conditions</h2><p>Welcome to Next Mart. By using our website and placing an order, you agree to the following terms.</p><h3>1. Orders & Pricing</h3><p>All prices are listed in Bangladeshi Taka (BDT) and include VAT where applicable. We reserve the right to cancel orders affected by obvious pricing errors.</p><h3>2. Delivery</h3><p>Standard delivery takes 1–2 business days inside Dhaka and 2–4 business days outside Dhaka. Delivery times are estimates, not guarantees.</p><h3>3. Warranty</h3><p>All products carry the official manufacturer warranty applicable in Bangladesh. Warranty claims are handled by the respective brand's authorized service centers.</p><h3>4. Payments</h3><p>We accept Cash on Delivery, bKash, Nagad and cards (via SSLCommerz). Online payments are confirmed only after gateway verification.</p>",
+            html: "<h2>Terms & Conditions</h2><p>Welcome to Best Cool Electronics. By using our website and placing an order, you agree to the following terms.</p><h3>1. Orders & Pricing</h3><p>All prices are listed in Bangladeshi Taka (BDT) and include VAT where applicable. We reserve the right to cancel orders affected by obvious pricing errors.</p><h3>2. Delivery</h3><p>Standard delivery takes 1–2 business days inside Dhaka and 2–4 business days outside Dhaka. Delivery times are estimates, not guarantees.</p><h3>3. Warranty</h3><p>All products carry the official manufacturer warranty applicable in Bangladesh. Warranty claims are handled by the respective brand's authorized service centers.</p><h3>4. Payments</h3><p>We accept Cash on Delivery, bKash, Nagad and cards (via SSLCommerz). Online payments are confirmed only after gateway verification.</p>",
           },
         },
       ],
@@ -582,8 +582,8 @@ async function seedPages(
     {
       slug: "privacy-policy",
       title: "Privacy Policy",
-      metaTitle: "Privacy Policy — Next Mart",
-      metaDescription: "How Next Mart collects, uses and protects your personal information.",
+      metaTitle: "Privacy Policy — Best Cool Electronics",
+      metaDescription: "How Best Cool Electronics collects, uses and protects your personal information.",
       blocks: [
         {
           type: BlockType.RICH_TEXT,
@@ -596,8 +596,8 @@ async function seedPages(
     {
       slug: "refund-policy",
       title: "Refund & Return Policy",
-      metaTitle: "Refund & Return Policy — Next Mart",
-      metaDescription: "Next Mart's 7-day replacement guarantee and refund process explained.",
+      metaTitle: "Refund & Return Policy — Best Cool Electronics",
+      metaDescription: "Best Cool Electronics's 7-day replacement guarantee and refund process explained.",
       blocks: [
         {
           type: BlockType.RICH_TEXT,
@@ -618,7 +618,7 @@ async function seedPages(
         title: page.title,
         metaTitle: page.metaTitle,
         metaDescription: page.metaDescription,
-        ogImage: img(`Next Mart — ${page.title}`, 1200, 630, "0f172a", "38bdf8"),
+        ogImage: img(`Best Cool Electronics — ${page.title}`, 1200, 630, "0f172a", "38bdf8"),
         blocks: {
           create: page.blocks.map((b, i) => ({ type: b.type, content: b.content as any, sortOrder: i, isEnabled: true })),
         },
@@ -629,7 +629,7 @@ async function seedPages(
 }
 
 async function main() {
-  console.log("Seeding Next Mart database...\n");
+  console.log("Seeding Best Cool Electronics database...\n");
   await seedAdmin();
   const categories = await seedCategories();
   const products = await seedProducts(categories);

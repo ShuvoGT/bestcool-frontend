@@ -78,7 +78,7 @@ export default function AdminOrderDetailPage() {
 
   return (
     <div className="mx-auto max-w-5xl">
-      <Link href="/admin/orders" className="mb-4 inline-flex items-center gap-1.5 text-sm text-zinc-400 hover:text-cyan-400">
+      <Link href="/work/orders" className="mb-4 inline-flex items-center gap-1.5 text-sm text-zinc-400 hover:text-cyan-400">
         <ArrowLeft className="h-4 w-4" /> All orders
       </Link>
       <PageHeader

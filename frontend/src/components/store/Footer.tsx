@@ -24,7 +24,7 @@ const SOCIAL_ICONS: Record<string, React.ComponentType<{ className?: string }>> 
 type FooterColumn = { title: string; links: { label: string; href: string }[] };
 
 export function Footer({ settings }: { settings: Settings }) {
-  const siteName: string = settings["site.name"] ?? "Next Mart";
+  const siteName: string = settings["site.name"] ?? "Best Cool Electronics";
   const columns: FooterColumn[] = settings["footer.columns"] ?? [];
   const socials: { platform: string; url: string }[] = settings["social.links"] ?? [];
 

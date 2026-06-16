@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Zap, Loader2 } from "lucide-react";
 import { api } from "@/lib/api";
@@ -14,6 +14,16 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [siteName, setSiteName] = useState("Best Cool Electronics");
+
+  useEffect(() => {
+    api<{ settings: Record<string, unknown> }>("/settings/public")
+      .then((r) => {
+        const name = r.settings["site.name"];
+        if (typeof name === "string" && name.trim()) setSiteName(name);
+      })
+      .catch(() => undefined);
+  }, []);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -25,7 +35,7 @@ export default function AdminLoginPage() {
         await api("/auth/logout", { method: "POST" });
         throw new Error("This account does not have admin access");
       }
-      router.replace("/admin");
+      router.replace("/work");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
       setLoading(false);
@@ -49,7 +59,7 @@ export default function AdminLoginPage() {
           </div>
           <div className="text-center">
             <h1 className="bg-gradient-to-r from-cyan-300 to-violet-400 bg-clip-text text-2xl font-bold tracking-tight text-transparent">
-              Next Mart
+              {siteName}
             </h1>
             <p className="mt-1 text-sm text-zinc-400">Admin Control Center</p>
           </div>
@@ -64,7 +74,7 @@ export default function AdminLoginPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="admin@nextmart.com.bd"
+              placeholder="Enter your email or username"
               className="border-white/10 bg-white/5 text-zinc-100 placeholder:text-zinc-600"
             />
           </div>

@@ -7,6 +7,7 @@ import { MobileBottomNav } from "@/components/store/MobileBottomNav";
 import { WhatsAppButton, ChatEmbed } from "@/components/store/FloatingWidgets";
 import { Analytics } from "@/components/store/Analytics";
 import { CodeSnippets } from "@/components/store/CodeSnippets";
+import { MaintenancePage } from "@/components/store/MaintenancePage";
 import { Toaster } from "@/components/ui/sonner";
 
 // Render storefront pages at request time (live DB data), not statically at
@@ -18,6 +19,21 @@ export default async function StoreLayout({ children }: { children: React.ReactN
   // Settings (menu, branding) + product categories both come from the backend,
   // so the header's nav and "Top Categories" list are fully admin-managed.
   const [settings, categories] = await Promise.all([getSettings(), getCategories()]);
+
+  // Maintenance mode: when enabled, every storefront URL shows the notice page
+  // instead of the real content. The admin panel (/work) is a separate route
+  // group, so staff can still sign in and turn it back off.
+  if (settings["maintenance.enabled"] === true) {
+    return (
+      <MaintenancePage
+        siteName={settings["site.name"] ?? "Best Cool Electronics"}
+        logo={settings["site.logo"] ?? null}
+        title={settings["maintenance.title"] ?? "We'll be right back"}
+        message={settings["maintenance.message"] ?? "Our store is undergoing scheduled maintenance. Please check back soon."}
+        until={settings["maintenance.until"] ?? null}
+      />
+    );
+  }
 
   return (
     <AuthProvider>

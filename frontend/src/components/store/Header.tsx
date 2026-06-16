@@ -25,7 +25,7 @@ export function Header({ settings, categories }: { settings: Settings; categorie
   const [catSidebarOpen, setCatSidebarOpen] = useState(false);
   const [search, setSearch] = useState("");
 
-  const siteName: string = settings["site.name"] ?? "Next Mart";
+  const siteName: string = settings["site.name"] ?? "Best Cool Electronics";
   const logo: string | null = settings["site.logo"] ?? null;
   const nav: NavLink[] = settings["nav.header"] ?? [];
   const phone: string | null = settings["contact.phone"] ?? null;

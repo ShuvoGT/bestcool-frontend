@@ -1,4 +1,4 @@
-// Next Mart — Prisma schema
+// Best Cool Electronics — Prisma schema
 // Covers: users/auth, catalog (products, variants, categories), reviews,
 // Pages CMS (block-based), global settings, carts, wishlists, flash sales,
 // orders (with courier + payment fields), delivery zones, password resets.
