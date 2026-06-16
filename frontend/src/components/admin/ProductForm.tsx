@@ -9,7 +9,8 @@ import { toast } from "sonner";
 import { api } from "@/lib/api";
 import { useLoad } from "@/lib/hooks";
 import { GlassCard, PageHeader } from "@/components/admin/ui";
-import { TextField, NumberField, TextareaField, ImageField, SwitchField } from "@/components/admin/fields";
+import { TextField, NumberField, ImageField, SwitchField } from "@/components/admin/fields";
+import { RichTextField } from "@/components/admin/RichTextField";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
@@ -133,12 +134,13 @@ export function ProductForm({ initial, productId }: { initial: ProductFormValues
               </Select>
             </div>
           </div>
-          <TextareaField
-            label="Description (HTML)"
+          <RichTextField
+            label="Description"
             value={form.description}
             onChange={(v) => set({ description: v })}
-            rows={8}
-            hint="Rich HTML supported — headings, lists, bold. Unsafe tags are stripped on save."
+            minHeight={220}
+            placeholder="Describe the product — use the toolbar for headings, lists, bold…"
+            hint="Unsafe tags are stripped on save."
           />
           <SwitchField label="Active" description="Inactive products are hidden from the storefront" checked={form.isActive} onChange={(v) => set({ isActive: v })} />
         </GlassCard>

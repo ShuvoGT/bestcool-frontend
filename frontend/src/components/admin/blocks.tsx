@@ -10,6 +10,7 @@ import Image from "next/image";
 import { Plus, Trash2, ChevronUp, ChevronDown, GripVertical, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TextField, TextareaField, ImageField, NumberField, SwitchField } from "@/components/admin/fields";
+import { RichTextField } from "@/components/admin/RichTextField";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
@@ -288,12 +289,12 @@ export function BlockContentEditor({ type, content, onChange, products, categori
 
     case "RICH_TEXT":
       return (
-        <TextareaField
-          label="Content (HTML)"
+        <RichTextField
+          label="Content"
           value={content.html ?? ""}
           onChange={(v) => set({ html: v })}
-          rows={10}
-          hint="Supports headings, paragraphs, lists, links, images. Unsafe tags are stripped on save."
+          minHeight={240}
+          hint="Use the toolbar for headings, lists, links and bold. Unsafe tags are stripped on save."
         />
       );
 
@@ -322,7 +323,7 @@ export function BlockContentEditor({ type, content, onChange, products, categori
             </div>
           </div>
           <TextField label="Heading" value={content.heading ?? ""} onChange={(v) => set({ heading: v })} />
-          <TextareaField label="Text (HTML)" value={content.html ?? ""} onChange={(v) => set({ html: v })} rows={6} />
+          <RichTextField label="Text" value={content.html ?? ""} onChange={(v) => set({ html: v })} minHeight={160} />
         </div>
       );
 
