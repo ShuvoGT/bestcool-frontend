@@ -279,6 +279,22 @@ model Setting {
   updatedAt DateTime @updatedAt
 }
 
+// Central record of every uploaded file — powers the admin Media library and
+// the media picker. One row per upload (image / video / document).
+model Media {
+  id         String   @id @default(cuid())
+  url        String   @db.Text
+  storageKey String   @db.Text // provider key/path, used for deletion
+  filename   String // original file name
+  mimeType   String
+  kind       String // "image" | "video" | "document"
+  size       Int? // bytes; null for backfilled records
+  createdAt  DateTime @default(now())
+
+  @@index([kind])
+  @@index([createdAt])
+}
+
 // Configurable delivery methods, e.g. Inside Dhaka / Outside Dhaka.
 model DeliveryZone {
   id        String  @id @default(cuid())

@@ -49,10 +49,22 @@ export async function api<T = unknown>(path: string, opts: Options = {}): Promis
   return data as T;
 }
 
-/** Uploads an image through the admin upload endpoint; returns its public URL. */
-export async function uploadImage(file: File): Promise<string> {
+export type UploadedFile = {
+  url: string;
+  key: string | null;
+  id: string | null;
+  kind: "image" | "video" | "document";
+  filename: string;
+};
+
+/** Uploads any supported file (image/video/pdf/word); returns its stored info. */
+export async function uploadFile(file: File): Promise<UploadedFile> {
   const form = new FormData();
   form.append("file", file);
-  const res = await api<{ url: string }>("/admin/uploads", { method: "POST", body: form });
-  return res.url;
+  return api<UploadedFile>("/admin/uploads", { method: "POST", body: form });
+}
+
+/** Uploads an image through the admin upload endpoint; returns its public URL. */
+export async function uploadImage(file: File): Promise<string> {
+  return (await uploadFile(file)).url;
 }

@@ -1,15 +1,14 @@
 "use client";
 
 /** Reusable form fields for admin editors, including upload-backed images. */
-import { useRef, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
-import { Loader2, Upload, X } from "lucide-react";
-import { toast } from "sonner";
-import { uploadImage } from "@/lib/api";
+import { ImagePlus, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { MediaPicker } from "@/components/admin/MediaPicker";
 import { cn } from "@/lib/utils";
 
 const inputDark = "border-white/10 bg-white/5 text-zinc-100 placeholder:text-zinc-600";
@@ -75,29 +74,14 @@ export function TextareaField({
   );
 }
 
-/** URL input + file upload button + live preview. */
+/** URL input + "choose from media library" button + live preview. The button
+ *  opens the WordPress-style media picker (browse existing OR upload new). */
 export function ImageField({
   label, value, onChange, aspectHint,
 }: {
   label: string; value: string; onChange: (v: string) => void; aspectHint?: string;
 }) {
-  const fileRef = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
-
-  async function pickFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(true);
-    try {
-      onChange(await uploadImage(file));
-      toast.success("Image uploaded");
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Upload failed");
-    } finally {
-      setUploading(false);
-      e.target.value = "";
-    }
-  }
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   return (
     <div className="space-y-1.5">
@@ -105,17 +89,16 @@ export function ImageField({
         {label} {aspectHint && <span className="ml-1 text-xs font-normal text-zinc-500">({aspectHint})</span>}
       </Label>
       <div className="flex gap-2">
-        <Input value={value} onChange={(e) => onChange(e.target.value)} placeholder="https://… or upload →" className={inputDark} />
-        <input ref={fileRef} type="file" accept="image/*" hidden onChange={pickFile} />
+        <Input value={value} onChange={(e) => onChange(e.target.value)} placeholder="https://… or choose →" className={inputDark} />
         <Button
           type="button"
           variant="outline"
           size="icon"
-          disabled={uploading}
-          onClick={() => fileRef.current?.click()}
+          title="Choose from media library"
+          onClick={() => setPickerOpen(true)}
           className="shrink-0 border-white/10 bg-white/5 hover:bg-white/10"
         >
-          {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+          <ImagePlus className="h-4 w-4" />
         </Button>
         {value && (
           <Button
@@ -134,6 +117,7 @@ export function ImageField({
           <Image src={value} alt="" fill unoptimized className="object-cover" />
         </div>
       )}
+      <MediaPicker open={pickerOpen} onOpenChange={setPickerOpen} onSelect={onChange} kind="image" />
     </div>
   );
 }
