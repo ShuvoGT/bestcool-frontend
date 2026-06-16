@@ -22,7 +22,10 @@ export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSettings();
   const siteName = (settings["site.name"] as string) || "Best Cool Electronics";
   const tagline = (settings["site.tagline"] as string) || "Genuine Electronics in Bangladesh";
-  const favicon = (settings["site.favicon"] as string) || null;
+  // Single authoritative favicon source: the admin-set one, else the default in
+  // /public. (We intentionally do NOT keep app/favicon.ico — its auto-generated
+  // <link sizes=... type=...> would out-rank the admin favicon and win in the tab.)
+  const favicon = (settings["site.favicon"] as string) || "/favicon.ico";
   const maintenance = settings["maintenance.enabled"] === true;
   // Default: indexable. Admin can flip "site.indexable" off to noindex the site.
   // During maintenance we always noindex so search engines don't cache the notice.
@@ -34,7 +37,7 @@ export async function generateMetadata(): Promise<Metadata> {
     title,
     description:
       "Buy 100% authentic smartphones, laptops, smart watches and accessories with official warranty. Fast delivery across Bangladesh.",
-    icons: favicon ? { icon: favicon, shortcut: favicon, apple: favicon } : undefined,
+    icons: { icon: favicon, shortcut: favicon, apple: favicon },
     robots: indexable ? undefined : { index: false, follow: false },
   };
 }
