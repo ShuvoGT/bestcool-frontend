@@ -12,6 +12,7 @@ import { useLoad } from "@/lib/hooks";
 import { bdt } from "@/lib/format";
 import { GlassCard, PageHeader, Spinner } from "@/components/admin/ui";
 import { TextField, TextareaField, ImageField, SwitchField, NumberField } from "@/components/admin/fields";
+import { RichTextField } from "@/components/admin/RichTextField";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -293,7 +294,7 @@ export default function AdminSettingsPage() {
 
           <GlassCard className="space-y-4 p-5">
             <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-400">Footer</h2>
-            <TextareaField label="Footer text" value={get("footer.text", "")} onChange={(v) => set("footer.text", v)} rows={3} />
+            <RichTextField label="Footer text" value={get("footer.text", "")} onChange={(v) => set("footer.text", v)} minHeight={100} placeholder="Short description shown in the footer…" />
             {footerColumns.map((col, ci) => (
               <div key={ci} className="rounded-lg border border-white/8 bg-white/3 p-4">
                 <div className="mb-3 flex items-end gap-3">

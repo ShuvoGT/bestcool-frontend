@@ -58,7 +58,12 @@ export function Footer({ settings }: { settings: Settings }) {
         {/* Brand + contact */}
         <div className="space-y-4">
           <div className="text-xl font-extrabold tracking-tight text-white">{siteName}</div>
-          {settings["footer.text"] && <p className="text-sm leading-relaxed text-zinc-400">{settings["footer.text"]}</p>}
+          {settings["footer.text"] && (
+            <div
+              className="text-sm leading-relaxed text-zinc-400 [&_a]:text-white [&_a]:underline [&_p]:my-1 [&_:first-child]:mt-0 [&_:last-child]:mb-0"
+              dangerouslySetInnerHTML={{ __html: settings["footer.text"] }}
+            />
+          )}
           <div className="flex gap-2">
             {socials.map((s) => {
               const Icon = SOCIAL_ICONS[s.platform?.toLowerCase()] ?? Globe;

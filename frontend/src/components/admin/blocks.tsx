@@ -403,7 +403,7 @@ export function BlockContentEditor({ type, content, onChange, products, categori
                   <TextField label="Location" value={t.location ?? ""} onChange={(v) => update({ location: v })} />
                   <NumberField label="Rating (1–5)" value={t.rating ?? 5} onChange={(v) => update({ rating: v === "" ? 5 : Math.min(5, Math.max(1, v)) })} min={1} />
                 </div>
-                <TextareaField label="Quote" value={t.text ?? ""} onChange={(v) => update({ text: v })} rows={3} />
+                <RichTextField label="Quote" value={t.text ?? ""} onChange={(v) => update({ text: v })} minHeight={100} placeholder="What the customer said…" />
               </>
             )}
           />
@@ -422,7 +422,7 @@ export function BlockContentEditor({ type, content, onChange, products, categori
             render={(q, update) => (
               <>
                 <TextField label="Question" value={q.question ?? ""} onChange={(v) => update({ question: v })} />
-                <TextareaField label="Answer" value={q.answer ?? ""} onChange={(v) => update({ answer: v })} rows={3} />
+                <RichTextField label="Answer" value={q.answer ?? ""} onChange={(v) => update({ answer: v })} minHeight={120} placeholder="Write the answer…" />
               </>
             )}
           />

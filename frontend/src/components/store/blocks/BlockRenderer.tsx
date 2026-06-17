@@ -223,7 +223,10 @@ function Block({ block }: { block: CmsBlock }) {
               {items.map((t, i) => (
                 <figure key={i} className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
                   <RatingStars rating={t.rating ?? 5} size="sm" />
-                  <blockquote className="mt-3 text-sm leading-relaxed text-zinc-600">“{t.text}”</blockquote>
+                  <blockquote
+                    className="mt-3 text-sm leading-relaxed text-zinc-600 before:content-['“'] after:content-['”'] [&_p]:m-0 [&_p]:inline"
+                    dangerouslySetInnerHTML={{ __html: t.text }}
+                  />
                   <figcaption className="mt-4 text-sm font-semibold text-zinc-900">
                     {t.name}
                     {t.location && <span className="ml-1.5 font-normal text-zinc-400">· {t.location}</span>}
@@ -246,7 +249,12 @@ function Block({ block }: { block: CmsBlock }) {
             {items.map((item, i) => (
               <AccordionItem key={i} value={`faq-${i}`}>
                 <AccordionTrigger className="text-left font-semibold text-zinc-900">{item.question}</AccordionTrigger>
-                <AccordionContent className="text-zinc-600">{item.answer}</AccordionContent>
+                <AccordionContent className="text-zinc-600">
+                  <div
+                    className="[&_a]:text-brand [&_a]:underline [&_p]:my-2 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_:first-child]:mt-0 [&_:last-child]:mb-0"
+                    dangerouslySetInnerHTML={{ __html: item.answer }}
+                  />
+                </AccordionContent>
               </AccordionItem>
             ))}
           </Accordion>
