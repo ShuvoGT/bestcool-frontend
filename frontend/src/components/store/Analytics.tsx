@@ -15,9 +15,11 @@ export function Analytics({ pixelId, ga4Id }: { pixelId?: string | null; ga4Id?:
   const pathname = usePathname();
   const firstLoad = useRef(true);
 
-  // Fire PageView on SPA navigation (the initial page_view is sent by the
-  // base snippets on load, so skip the very first run here).
+  // First-party funnel page view fires on EVERY navigation including the first
+  // load (so single-page sessions are counted). The GA/Pixel PageView skips the
+  // first run because the base snippets already send the initial page_view.
   useEffect(() => {
+    analytics.firstPartyPageView();
     if (firstLoad.current) {
       firstLoad.current = false;
       return;

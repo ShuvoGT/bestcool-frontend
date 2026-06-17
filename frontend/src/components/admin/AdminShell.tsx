@@ -10,7 +10,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, FileText, Package, Tags, ShoppingCart, Users, Zap,
-  Settings, Shield, UserCircle, LogOut, Loader2, ExternalLink, Image as ImageIcon, Search, type LucideIcon,
+  Settings, Shield, UserCircle, LogOut, Loader2, ExternalLink, Image as ImageIcon, Search, BarChart3, type LucideIcon,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -28,6 +28,7 @@ export const useAdminUser = () => useContext(AdminUserContext);
 type NavItem = { href: string; label: string; icon: LucideIcon; exact?: boolean; perm: string | null };
 const NAV: NavItem[] = [
   { href: "/work", label: "Dashboard", icon: LayoutDashboard, exact: true, perm: null },
+  { href: "/work/analytics", label: "Analytics", icon: BarChart3, perm: "orders" },
   { href: "/work/pages", label: "Pages", icon: FileText, perm: "content" },
   { href: "/work/media", label: "Media", icon: ImageIcon, perm: "content" },
   { href: "/work/products", label: "Products", icon: Package, perm: "products" },

@@ -62,6 +62,14 @@ enum CourierName {
   REDX
 }
 
+// First-party funnel events (page view → product view → add to cart → checkout).
+enum AnalyticsEventType {
+  PAGE_VIEW
+  PRODUCT_VIEW
+  ADD_TO_CART
+  CHECKOUT_STARTED
+}
+
 // Block types supported by the Pages CMS editor.
 enum BlockType {
   HERO_SLIDER
@@ -293,6 +301,23 @@ model Media {
 
   @@index([kind])
   @@index([createdAt])
+}
+
+// Minimal first-party analytics events powering the admin conversion funnel.
+// Written from the storefront via /api/events (no PII). Device is derived from
+// the User-Agent server-side. `order_placed` is read from the Order table.
+model AnalyticsEvent {
+  id        String             @id @default(cuid())
+  type      AnalyticsEventType
+  sessionId String // anonymous per-session id (30-min sliding window, client-set)
+  path      String?            @db.Text
+  productId String?
+  device    String? // "mobile" | "tablet" | "desktop"
+  createdAt DateTime           @default(now())
+
+  @@index([type, createdAt])
+  @@index([createdAt])
+  @@index([sessionId])
 }
 
 // Configurable delivery methods, e.g. Inside Dhaka / Outside Dhaka.
