@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getBrands, getCategories, getPage, getProducts } from "@/lib/server-api";
+import { pageTitle } from "@/lib/seo";
 import { BlockRenderer } from "@/components/store/blocks/BlockRenderer";
 import { ProductCard } from "@/components/store/ProductCard";
 import { CategoryStrip, ShopSidebar, ShopTopBar } from "@/components/store/ShopFilters";
@@ -12,8 +13,10 @@ type Props = { searchParams: Promise<Search> };
 export async function generateMetadata(): Promise<Metadata> {
   const page = await getPage("shop");
   return {
-    title: page?.metaTitle ?? "Shop",
+    title: pageTitle(page?.metaTitle, "Shop"),
     description: page?.metaDescription ?? undefined,
+    // Filters live in the query string; canonicalise to the clean /shop URL.
+    alternates: { canonical: "/shop" },
   };
 }
 

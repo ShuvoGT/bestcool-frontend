@@ -10,7 +10,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard, FileText, Package, Tags, ShoppingCart, Users, Zap,
-  Settings, Shield, UserCircle, LogOut, Loader2, ExternalLink, Image as ImageIcon, type LucideIcon,
+  Settings, Shield, UserCircle, LogOut, Loader2, ExternalLink, Image as ImageIcon, Search, type LucideIcon,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -37,6 +37,7 @@ const NAV: NavItem[] = [
   { href: "/work/flash-sales", label: "Flash Sales", icon: Zap, perm: "flashSales" },
   { href: "/work/users", label: "Users", icon: Shield, perm: "__admin__" },
   { href: "/work/settings", label: "Settings", icon: Settings, perm: "settings" },
+  { href: "/work/seo", label: "SEO", icon: Search, perm: "settings" },
 ];
 
 function canSee(user: AdminUser, perm: string | null): boolean {

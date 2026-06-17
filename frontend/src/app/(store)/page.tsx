@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
 import { getPage } from "@/lib/server-api";
+import { pageTitle } from "@/lib/seo";
 import { BlockRenderer } from "@/components/store/blocks/BlockRenderer";
 
 export async function generateMetadata(): Promise<Metadata> {
   const page = await getPage("home");
   return {
-    title: page?.metaTitle ?? page?.title ?? "Home",
+    // No title set → falls back to the SEO default title from the root layout.
+    title: page?.metaTitle ? { absolute: page.metaTitle } : undefined,
     description: page?.metaDescription ?? undefined,
-    openGraph: page?.ogImage ? { images: [page.ogImage] } : undefined,
+    alternates: { canonical: "/" },
+    openGraph: { url: "/", images: page?.ogImage ? [page.ogImage] : undefined },
   };
 }
 

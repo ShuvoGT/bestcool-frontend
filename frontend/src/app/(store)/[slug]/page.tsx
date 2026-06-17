@@ -6,6 +6,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getPage } from "@/lib/server-api";
+import { pageTitle } from "@/lib/seo";
 import { BlockRenderer } from "@/components/store/blocks/BlockRenderer";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -14,10 +15,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const page = await getPage(slug);
   if (!page) return {};
+  const description = page.metaDescription ?? undefined;
   return {
-    title: page.metaTitle ?? page.title,
-    description: page.metaDescription ?? undefined,
-    openGraph: page.ogImage ? { images: [page.ogImage] } : undefined,
+    title: pageTitle(page.metaTitle, page.title),
+    description,
+    alternates: { canonical: `/${slug}` },
+    openGraph: {
+      type: "website",
+      title: page.metaTitle ?? page.title,
+      description,
+      url: `/${slug}`,
+      images: page.ogImage ? [page.ogImage] : undefined,
+    },
   };
 }
 

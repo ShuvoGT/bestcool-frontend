@@ -6,7 +6,8 @@ export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSettings();
   const siteName = (settings["site.name"] as string) || "Best Cool Electronics";
   return {
-    title: `Admin — ${siteName}`,
+    // `absolute` bypasses the site-wide title template (no double suffix).
+    title: { absolute: `Admin — ${siteName}` },
     robots: { index: false, follow: false },
   };
 }
