@@ -5,10 +5,14 @@
 
 generator client {
   provider = "prisma-client-js"
+  // Build happens on Windows ("native") but Hostinger runs Linux, so bundle the
+  // Linux query engines too — otherwise Prisma can't start in production. Modern
+  // Hostinger is OpenSSL 3.0 (debian); 1.1.x included as a fallback for older hosts.
+  binaryTargets = ["native", "debian-openssl-3.0.x", "debian-openssl-1.1.x"]
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
@@ -58,6 +62,14 @@ enum CourierName {
   REDX
 }
 
+// First-party funnel events (page view → product view → add to cart → checkout).
+enum AnalyticsEventType {
+  PAGE_VIEW
+  PRODUCT_VIEW
+  ADD_TO_CART
+  CHECKOUT_STARTED
+}
+
 // Block types supported by the Pages CMS editor.
 enum BlockType {
   HERO_SLIDER
@@ -89,8 +101,8 @@ model User {
   password           String // bcrypt hash
   role               Role      @default(CUSTOMER)
   // For STAFF users: the capability keys they may access (see lib/permissions).
-  // ADMIN implicitly has all; CUSTOMER has none.
-  permissions        String[]  @default([])
+  // ADMIN implicitly has all; CUSTOMER has none. (JSON string array on MySQL.)
+  permissions        Json?
   // Display label of the chosen role preset, e.g. "store_manager", "editor".
   staffRole          String?
   // Deactivated staff keep their data but can no longer sign in to /admin.
@@ -148,7 +160,7 @@ model Category {
   id        String   @id @default(cuid())
   name      String
   slug      String   @unique
-  image     String?
+  image     String?  @db.Text
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -160,7 +172,7 @@ model Product {
   name              String
   slug              String   @unique
   brand             String? // for the shop "filter by brand"
-  description       String   @default("") // sanitized rich-text HTML
+  description       String   @default("") @db.Text // sanitized rich-text HTML
   sku               String?  @unique
   regularPrice      Decimal  @db.Decimal(12, 2)
   salePrice         Decimal? @db.Decimal(12, 2)
@@ -190,7 +202,7 @@ model Product {
 model ProductImage {
   id        String @id @default(cuid())
   productId String
-  url       String
+  url       String @db.Text
   alt       String?
   sortOrder Int    @default(0)
 
@@ -222,7 +234,7 @@ model Review {
   productId  String
   userId     String
   rating     Int // 1–5
-  comment    String   @default("")
+  comment    String   @default("") @db.Text
   isApproved Boolean  @default(true)
   createdAt  DateTime @default(now())
 
@@ -242,8 +254,8 @@ model Page {
   slug            String   @unique // home, about-us, contact-us, shop, showroom, terms, privacy, refund-policy
   title           String
   metaTitle       String?
-  metaDescription String?
-  ogImage         String?
+  metaDescription String? @db.Text
+  ogImage         String? @db.Text
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -273,6 +285,39 @@ model Setting {
   key       String   @id
   value     Json
   updatedAt DateTime @updatedAt
+}
+
+// Central record of every uploaded file — powers the admin Media library and
+// the media picker. One row per upload (image / video / document).
+model Media {
+  id         String   @id @default(cuid())
+  url        String   @db.Text
+  storageKey String   @db.Text // provider key/path, used for deletion
+  filename   String // original file name
+  mimeType   String
+  kind       String // "image" | "video" | "document"
+  size       Int? // bytes; null for backfilled records
+  createdAt  DateTime @default(now())
+
+  @@index([kind])
+  @@index([createdAt])
+}
+
+// Minimal first-party analytics events powering the admin conversion funnel.
+// Written from the storefront via /api/events (no PII). Device is derived from
+// the User-Agent server-side. `order_placed` is read from the Order table.
+model AnalyticsEvent {
+  id        String             @id @default(cuid())
+  type      AnalyticsEventType
+  sessionId String // anonymous per-session id (30-min sliding window, client-set)
+  path      String?            @db.Text
+  productId String?
+  device    String? // "mobile" | "tablet" | "desktop"
+  createdAt DateTime           @default(now())
+
+  @@index([type, createdAt])
+  @@index([createdAt])
+  @@index([sessionId])
 }
 
 // Configurable delivery methods, e.g. Inside Dhaka / Outside Dhaka.
@@ -374,16 +419,16 @@ model Order {
   shippingName     String
   shippingPhone    String
   shippingEmail    String
-  shippingAddress  String
+  shippingAddress  String  @db.Text
   shippingDistrict String
-  orderNotes       String?
+  orderNotes       String? @db.Text
   deliveryZoneName String // snapshot of the chosen delivery method's name
 
   // Courier integration (spec §11)
   courierName       CourierName?
   consignmentId     String?
   courierStatus     String?
-  courierTrackingUrl String?
+  courierTrackingUrl String? @db.Text
 
   // Set when an online payment is verified server-side
   paidAt DateTime?
@@ -409,7 +454,7 @@ model OrderItem {
   variantId   String?
   name        String
   variantName String?
-  image       String?
+  image       String? @db.Text
   // Server-resolved unit price (sale/flash-sale aware) at order time.
   unitPrice   Decimal @db.Decimal(12, 2)
   quantity    Int
